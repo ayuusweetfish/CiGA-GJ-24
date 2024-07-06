@@ -6,9 +6,6 @@ local timeline_scroll = function ()
   local ticks = {}
   local tags = {}
 
-  s.x_min = 1
-  s.x_max = 0
-
   s.dx = 1
   s.tx = 1
   s.ticks = ticks
@@ -75,7 +72,7 @@ local timeline_scroll = function ()
   end
 
   s.update = function ()
-    local x_min, x_max = s.x_min, s.x_max
+    local x_min, x_max = 1, #ticks
 
     -- Pull into range
     if s.tx < x_min then
@@ -115,21 +112,25 @@ return function ()
   local W, H = W, H
   local font = _G['global_font']
 
-  local album_ticks = {0, 0.25, 0.5, 0.75, 1}
+  local album_ticks = {0, 0.25, 0.5, 0.75, 1, [20] = -1}
 
   local objs_in_album = {
     [1] = {
       {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120, img = 'bee'},
+      {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, img = 'bee', unlock = 3},
     },
     [2] = {
       {x = 0.7*W, y = 0.4*H, rx = 120, ry = 100, img = 'bee'},
-      {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, img = 'bee', unlock = 3},
     },
     [3] = {
       {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, img = 'bee'},
+      {x = 0.5*W, y = 0.7*H, rx = 80, ry = 80, img = 'bee', unlock = 20},
     },
     [5] = {
       {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, img = 'bee'},
+    },
+    [20] = {
+      {x = 0.8*W, y = 0.5*H, rx = 30, ry = 30, img = 'bee'},
     },
   }
   local album_idx = 1
@@ -148,8 +149,11 @@ return function ()
   local zoom_pressed = false
 
   local tl = timeline_scroll()
+  tl.add_tick(album_ticks[1], 1)
   tl.add_tick(album_ticks[2], 2)
   tl.add_tick(album_ticks[5], 5)
+
+  local tl_obj_unlock
 
   s.press = function (x, y)
     if zoom_obj ~= nil then
@@ -205,14 +209,15 @@ return function ()
       if zoom_pressed then
         zoom_in_time, zoom_out_time = -1, 0
         if zoom_obj.unlock then
-          if album_idx == zoom_obj.unlock and not tl.find_tag(zoom_obj.unlock) then
-            -- Set to unlocked
-            tl.modify_tag(-zoom_obj.unlock, zoom_obj.unlock)
-          else
-            -- No-op if already unlocked
-            tl.remove_tick(-zoom_obj.unlock)
+          if album_idx == zoom_obj.unlock then
+            if not tl.find_tag(zoom_obj.unlock) then
+              tl.add_tick(album_ticks[zoom_obj.unlock], zoom_obj.unlock)
+            end
+            -- Synchronise timelines
+            tl.tx = tl.find_tag(zoom_obj.unlock)
+            tl.dx = tl.tx
           end
-          tl.x_min, tl.x_max = 1, #tl.ticks
+          tl_obj_unlock = nil
         end
       end
       zoom_pressed = false
@@ -228,12 +233,10 @@ return function ()
         zoom_obj = o
         zoom_in_time, zoom_out_time = 0, -1
         -- Object unlocks a tick in the album?
-        if o.unlock and not tl.find_tag(o.unlock) then
-          tl.add_tick(album_ticks[o.unlock], -o.unlock)
-          local pos1 = tl.find_tag(album_idx)
-          local pos2 = tl.find_tag(-o.unlock)
-          tl.x_min = math.min(pos1, pos2)
-          tl.x_max = math.max(pos1, pos2)
+        if o.unlock --[[ and not tl.find_tag(o.unlock) ]] then
+          tl_obj_unlock = timeline_scroll()
+          tl_obj_unlock.add_tick(album_ticks[album_idx], album_idx)
+          tl_obj_unlock.add_tick(album_ticks[o.unlock], o.unlock)
         end
       end
     end
@@ -267,7 +270,11 @@ return function ()
     end
 
     tl.update()
-    album_idx = math.abs(tl.sel_tag)
+    album_idx = tl.sel_tag
+    if tl_obj_unlock then
+      tl_obj_unlock.update()
+      album_idx = tl_obj_unlock.sel_tag
+    end
     objs = objs_in_album[album_idx]
   end
 
@@ -322,6 +329,8 @@ return function ()
     end
 
     -- Timeline
+    local tl0 = tl
+    local tl = tl_obj_unlock or tl
     if tl.blur_disp > 0.2 then
       local alpha = (tl.blur_disp - 0.2) / 0.8
       alpha = alpha^(1/3)
@@ -331,9 +340,9 @@ return function ()
     love.graphics.setColor(1, 1, 1, 0.4)
     love.graphics.setLineWidth(4)
     love.graphics.line(W * 0.85, H * 0.1, W * 0.85, H * 0.9)
-    for i = 1, #tl.ticks do
-      if tl.tags[i] > 0 then
-        love.graphics.circle('fill', W * 0.85, H * (0.1 + tl.ticks[i] * 0.8), 12)
+    for i = 1, #tl0.ticks do
+      if tl0.tags[i] > 0 then
+        love.graphics.circle('fill', W * 0.85, H * (0.1 + tl0.ticks[i] * 0.8), 12)
       end
     end
     love.graphics.setColor(1, 1, 1)
@@ -342,11 +351,10 @@ return function ()
 
   s.wheel = function (x, y)
     if zoom_obj ~= nil then
-      if zoom_in_time >= 120
-        and zoom_obj.unlock
+      if zoom_in_time >= 120 and tl_obj_unlock
         and zoom_obj.unlock ~= album_idx
       then
-        tl.push(y)
+        tl_obj_unlock.push(y)
       end
     else
       tl.push(y)
