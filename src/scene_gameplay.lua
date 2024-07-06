@@ -3,28 +3,42 @@ local draw = require 'draw_utils'
 local timeline_scroll = function ()
   local s = {}
 
-  s.dx = 0.5
-  s.tx = 0.5
+  local ticks = {}
 
-  local carousel_target
+  s.dx = 1
+  s.tx = 1
+  s.ticks = ticks
+  s.dx_disp = 0
+
+  s.add_tick = function (t)
+    ticks[#ticks + 1] = t
+  end
 
   s.push = function (dx)
-    s.tx = s.tx + dx
+    s.tx = s.tx + dx * 0.05
   end
 
   s.update = function ()
-    s.dx = s.dx + (s.tx - s.dx) * 0.3
+    s.dx = s.dx + (s.tx - s.dx) * 0.08
 
-    -- Pull towards target
-    if carousel_target ~= nil then
-      s.dx = s.dx + (carousel_target - s.dx) * 0.6
+    -- Pull into range
+    if s.tx < 1 then
+      s.tx = s.tx + (1 - s.tx) * 0.08
+    elseif s.tx > #ticks then
+      s.tx = s.tx + (#ticks - s.tx) * 0.08
     else
-      -- Pull into range
-      if s.tx < 0 then
-        s.tx = s.tx + (0 - s.tx) * 0.3
-      elseif s.tx > 1 then
-        s.tx = s.tx + (1 - s.tx) * 0.3
-      end
+      local i = math.floor(s.tx)
+      target = i + (s.tx < i + 0.5 and 0 or 1)
+      s.tx = s.tx + (target - s.tx) * 0.02
+    end
+
+    if s.dx < 1 then
+      s.dx_disp = ticks[1] - (ticks[2] - ticks[1]) * (1 - s.dx)
+    elseif s.dx >= #ticks then
+      s.dx_disp = ticks[#ticks] + (ticks[#ticks] - ticks[#ticks - 1]) * (s.dx - #ticks)
+    else
+      local i = math.floor(s.dx)
+      s.dx_disp = ticks[i] + (ticks[i + 1] - ticks[i]) * (s.dx - i)
     end
   end
 
@@ -53,6 +67,9 @@ return function ()
   local zoom_pressed = false
 
   local tl = timeline_scroll()
+  tl.add_tick(0)
+  tl.add_tick(0.25)
+  tl.add_tick(1)
 
   s.press = function (x, y)
     if zoom_obj ~= nil then
@@ -151,6 +168,8 @@ return function ()
       p_rel_time = p_rel_time + 1
       if p_rel_time >= 120 then p_rel_time = -1 end
     end
+
+    tl.update()
   end
 
   s.draw = function ()
@@ -192,6 +211,7 @@ return function ()
       p_alpha = 1 - (1 - p_alpha) * (1 - p_alpha)
     end
     love.graphics.setColor(1, 0.8, 0.7, 1 - p_alpha)
+    love.graphics.setLineWidth(2)
     love.graphics.circle('line', px_anim, py_anim, pr)
     love.graphics.setColor(1, 0.8, 0.7, p_alpha)
     love.graphics.circle('fill', px_anim, py_anim, pr)
@@ -203,14 +223,18 @@ return function ()
     end
 
     -- Timeline
-    tl.update()
-    love.graphics.setColor(1, 1, 1)
+    love.graphics.setColor(1, 1, 1, 0.4)
+    love.graphics.setLineWidth(4)
     love.graphics.line(W * 0.85, H * 0.1, W * 0.85, H * 0.9)
-    love.graphics.circle('fill', W * 0.85, H * (0.1 + tl.dx * 0.8), 20)
+    for i = 1, #tl.ticks do
+      love.graphics.circle('fill', W * 0.85, H * (0.1 + tl.ticks[i] * 0.8), 12)
+    end
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.circle('fill', W * 0.85, H * (0.1 + tl.dx_disp * 0.8), 20)
   end
 
   s.wheel = function (x, y)
-    tl.push(y * 0.01)
+    tl.push(y)
   end
 
   s.destroy = function ()
