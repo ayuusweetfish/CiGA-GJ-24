@@ -134,6 +134,7 @@ return function ()
     [1] = {
       {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120, img = 'bee'},
       {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, img = 'bee', unlock = 3},
+      {x = 0.3*W, y = 0.2*H, rx = 80, ry = 80, img = 'bee', unlock = 4},
     },
     [2] = {
       {x = 0.7*W, y = 0.4*H, rx = 120, ry = 100, img = 'bee'},
@@ -142,6 +143,9 @@ return function ()
       {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, img = 'bee'},
       {x = 0.5*W, y = 0.7*H, rx = 80, ry = 80, img = 'bee', unlock = 20},
       {x = 0.6*W, y = 0.7*H, rx = 80, ry = 80, img = 'bee', unlock = 21},
+    },
+    [4] = {
+      {x = 0.5*W, y = 0.5*H, rx = 50, ry = 50, img = 'bee'},
     },
     [5] = {
       {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, img = 'bee'},
@@ -175,7 +179,10 @@ return function ()
 
   local tl_obj_unlock
 
+  local s4_seq_time = -1
+
   s.press = function (x, y)
+    if s4_seq_time >= 0 then return end
     if zoom_obj ~= nil then
       if zoom_in_time >= 120 then
         zoom_pressed = true
@@ -224,20 +231,23 @@ return function ()
     return math.sqrt(dx*dx + dy*dy)
   end
 
+  local synchronise_tl = function ()
+    local unlock = album_idx
+    if not tl.find_tag(unlock) then
+      tl.add_tick(album_ticks[unlock], unlock)
+    end
+    -- Synchronise timelines
+    tl.tx = tl.find_tag(unlock)
+    tl.dx = tl.tx
+    tl_obj_unlock = nil
+  end
+
   s.release = function (x, y)
     if zoom_obj ~= nil then
       if zoom_pressed then
         zoom_in_time, zoom_out_time = -1, 0
-        if zoom_obj.unlock then
-          if album_idx == zoom_obj.unlock then
-            if not tl.find_tag(zoom_obj.unlock) then
-              tl.add_tick(album_ticks[zoom_obj.unlock], zoom_obj.unlock)
-            end
-            -- Synchronise timelines
-            tl.tx = tl.find_tag(zoom_obj.unlock)
-            tl.dx = tl.tx
-          end
-          tl_obj_unlock = nil
+        if zoom_obj.unlock and album_idx == zoom_obj.unlock then
+          synchronise_tl()
         end
       end
       zoom_pressed = false
@@ -296,6 +306,24 @@ return function ()
       album_idx = tl_obj_unlock.sel_tag
     end
     objs = objs_in_album[album_idx]
+
+    -- Special case: entering album scene 4
+    if s4_seq_time == -1 and tl_obj_unlock and zoom_obj.unlock == 4 then
+      local i = tl_obj_unlock.find_tag(4)
+      if (tl_obj_unlock.dx - 1.5) * (i - 1.5) >= 0 then
+        s4_seq_time = 0   -- This disables further interactions
+        zoom_obj = nil
+        zoom_in_time, zoom_out_time = -1, -1
+      end
+    end
+
+    if s4_seq_time >= 0 then
+      s4_seq_time = s4_seq_time + 1
+      if s4_seq_time >= 480 then
+        s4_seq_time = -2  -- Played
+        synchronise_tl()
+      end
+    end
   end
 
   s.draw = function ()
@@ -349,14 +377,22 @@ return function ()
     end
 
     -- Blur
+    local blur_alpha = 0
     local tl0 = tl
     local tl = tl_obj_unlock or tl
     if tl.blur_disp > 0.2 then
-      local alpha = (tl.blur_disp - 0.2) / 0.8
-      alpha = alpha^(1/3)
-      love.graphics.setColor(0.04, 0.04, 0.04, alpha)
+      blur_alpha = (tl.blur_disp - 0.2) / 0.8
+      blur_alpha = blur_alpha^(1/3)
+    end
+    if s4_seq_time >= 0 then
+      blur_alpha = 1
+      if s4_seq_time >= 200 and s4_seq_time < 280 then blur_alpha = 0 end
+    end
+    if blur_alpha > 0 then
+      love.graphics.setColor(0.04, 0.04, 0.04, blur_alpha)
       love.graphics.rectangle('fill', 0, 0, W, H)
     end
+
     -- Timeline
     local timeline_min = tl0.ticks[1]
     local timeline_max = tl0.ticks[#tl0.ticks]
@@ -393,6 +429,7 @@ return function ()
   end
 
   s.wheel = function (x, y)
+    if s4_seq_time >= 0 then return end
     if zoom_obj ~= nil then
       if zoom_in_time >= 120 and tl_obj_unlock
         and zoom_obj.unlock ~= album_idx
