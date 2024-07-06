@@ -67,7 +67,7 @@ local timeline_scroll = function ()
 
   local pull_near = function (a, b, rate)
     local diff = b - a
-    if math.abs(diff) < 0.001 then return b
+    if math.abs(diff) < 1e-5 then return b
     else return a + (b - a) * rate end
   end
 
@@ -88,11 +88,11 @@ local timeline_scroll = function ()
     s.dx = pull_near(s.dx, s.tx, 0.08)
 
     if s.dx < x_min then
-      s.dx_disp = ticks[x_min] - (ticks[x_min + 1] - ticks[x_min]) * (x_min - s.dx)
+      s.dx_disp = ticks[x_min] - math.min(0.5, ticks[x_min + 1] - ticks[x_min]) * (x_min - s.dx)
       s.sel_tag = tags[x_min]
       s.blur_disp = 0
     elseif s.dx >= x_max then
-      s.dx_disp = ticks[x_max] + (ticks[x_max] - ticks[x_max - 1]) * (s.dx - x_max)
+      s.dx_disp = ticks[x_max] + math.min(0.5, ticks[x_max] - ticks[x_max - 1]) * (s.dx - x_max)
       s.sel_tag = tags[x_max]
       s.blur_disp = 0
     else
@@ -112,12 +112,12 @@ return function ()
   local W, H = W, H
   local font = _G['global_font']
 
-  local album_ticks = {0, 0.25, 0.5, 0.75, 1, [20] = -1}
+  local album_ticks = {0, 0.25, 0.5, 0.75, 1, [20] = -100}
 
   local objs_in_album = {
     [1] = {
       {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120, img = 'bee'},
-      {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, img = 'bee', unlock = 3},
+      {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, img = 'bee', unlock = 20},
     },
     [2] = {
       {x = 0.7*W, y = 0.4*H, rx = 120, ry = 100, img = 'bee'},
@@ -328,7 +328,7 @@ return function ()
       love.graphics.ellipse('fill', o.x, o.y, o.rx, o.ry)
     end
 
-    -- Timeline
+    -- Blur
     local tl0 = tl
     local tl = tl_obj_unlock or tl
     if tl.blur_disp > 0.2 then
@@ -337,16 +337,31 @@ return function ()
       love.graphics.setColor(0.04, 0.04, 0.04, alpha)
       love.graphics.rectangle('fill', 0, 0, W, H)
     end
+    -- Timeline
+    local timeline_min = tl0.ticks[1]
+    local timeline_max = tl0.ticks[#tl0.ticks]
+    if tl_obj_unlock then
+      timeline_min = math.min(timeline_min, tl_obj_unlock.dx_disp)
+      timelaxe_max = math.max(timeline_max, tl_obj_unlock.dx_disp)
+    end
+    local scale = 0
+    if tl.dx_disp < -0.1 and timeline_min < 0 then
+      scale = -tl.dx_disp - 0.1
+    end
+    local y = function (t)
+      local y = (t + scale) / (scale * 2 + 1)
+      return H * (0.15 + y * 0.7)
+    end
     love.graphics.setColor(1, 1, 1, 0.4)
     love.graphics.setLineWidth(4)
-    love.graphics.line(W * 0.85, H * 0.1, W * 0.85, H * 0.9)
+    love.graphics.line(W * 0.85, y(timeline_min), W * 0.85, y(timeline_max))
     for i = 1, #tl0.ticks do
       if tl0.tags[i] > 0 then
-        love.graphics.circle('fill', W * 0.85, H * (0.1 + tl0.ticks[i] * 0.8), 12)
+        love.graphics.circle('fill', W * 0.85, y(tl0.ticks[i]), 12)
       end
     end
     love.graphics.setColor(1, 1, 1)
-    love.graphics.circle('fill', W * 0.85, H * (0.1 + tl.dx_disp * 0.8), 20)
+    love.graphics.circle('fill', W * 0.85, y(tl.dx_disp), 20)
   end
 
   s.wheel = function (x, y)
