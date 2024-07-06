@@ -164,8 +164,8 @@ return function ()
       {x = 0.6*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 21, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
     },
     [5] = {
-      {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, zoom_img = 'bee'},
-      {x = 0.4*W, y = 0.6*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
+      {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, zoom_img = 'bee', text = '不知道是什么'},
+      {x = 0.4*W, y = 0.6*H, rx = 80, ry = 80, zoom_img = 'bee', text = '不知道是什么', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
       {x = 0.5*W, y = 0.5*H, rx = 100, ry = 120, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 100, index = 1},
     },
     [20] = {
@@ -199,6 +199,7 @@ return function ()
   local zoom_in_time, zoom_out_time = -1, -1
   local zoom_pressed = false
 
+  local zoom_text
   local UNLOCK_SEQ_PROG_RATE = 6
   local zoom_seq_prog
 
@@ -206,8 +207,7 @@ return function ()
   local sack_key_match_time = -1
 
   local tl = timeline_scroll()
-  -- tl.add_tick(album_ticks[5], 5)
-  tl.add_tick(album_ticks[2], 2)
+  tl.add_tick(album_ticks[5], 5)
 
   local tl_obj_unlock
 
@@ -350,6 +350,10 @@ return function ()
         if o.star_sack and o.sack_open then o = o.child end
         zoom_obj = o
         zoom_in_time, zoom_out_time = 0, -1
+        -- Text
+        if o.text ~= nil then
+          zoom_text = love.graphics.newText(font(42), o.text)
+        end
         -- Object unlocks a tick in the album?
         if o.unlock --[[ and not tl.find_tag(o.unlock) ]] then
           tl_obj_unlock = timeline_scroll()
@@ -384,6 +388,10 @@ return function ()
       if zoom_out_time == 120 then
         zoom_obj = nil
         zoom_out_time = -1
+        if zoom_text then
+          zoom_text:release()
+          zoom_text = nil
+        end
         tl_obj_unlock = nil
       end
     end
@@ -438,6 +446,10 @@ return function ()
         s4_seq_time = 0   -- This disables further interactions
         zoom_obj = nil
         zoom_in_time, zoom_out_time = -1, -1
+        if zoom_text then -- XXX: to determine whether this is needed
+          zoom_text:release()
+          zoom_text = nil
+        end
       end
     end
 
@@ -488,7 +500,7 @@ return function ()
       end
       love.graphics.setColor(1, 1, 1, o_alpha)
       local x_target, y_target = W * 0.275, H * 0.5
-      if zoom_obj.star_sack then
+      if zoom_text == nil then
         x_target = W * 0.5
       end
       local scale = 0.3 + 0.3 * math.sqrt(math.sqrt(o_alpha))
@@ -501,6 +513,10 @@ return function ()
       local x_cen = x_target + (zoom_obj.x - x_target) * move_prog
       local y_cen = y_target + (zoom_obj.y - y_target) * move_prog
       draw.img(img, x_cen, y_cen, H * scale, H * scale)
+      -- Text
+      if zoom_text then
+        draw.shadow(0.9, 0.9, 0.9, o_alpha, zoom_text, W * 0.67, H * 0.5)
+      end
 
       -- Star sack?
       if zoom_obj.star_sack then
