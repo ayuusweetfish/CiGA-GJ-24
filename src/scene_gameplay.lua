@@ -6,7 +6,7 @@ return function ()
   local font = _G['global_font']
 
   local objs = {
-    {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120},
+    {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120, img = 'bee'},
   }
 
   local PT_INITIAL_R = W * 0.01
@@ -17,7 +17,18 @@ return function ()
   local p_hold_time, p_rel_time = -1, -1
   local px_rel, py_rel
 
+  local zoom_obj = nil
+  local zoom_in_time, zoom_out_time = -1, -1
+  local zoom_pressed = false
+
   s.press = function (x, y)
+    if zoom_obj ~= nil then
+      if zoom_in_time >= 120 then
+        zoom_pressed = true
+      end
+      return true
+    end
+
     p_hold_time, p_rel_time = 0, -1
     px, py = x, y
   end
@@ -28,16 +39,6 @@ return function ()
 
   s.move = function (x, y)
   end
-
---[[
-  print('!', os.clock())
-  local t = 1.0001
-  for i = 1, 100000000 do t = t ^ 3 end
-  print('!', os.clock(), t)
-  t = 1.0001
-  for i = 1, 100000000 do t = t*t*t end
-  print('!', os.clock(), t)
-]]
 
   -- https://stackoverflow.com/a/46007540
   local dist_ellipse = function (a, b, px, py)
@@ -70,12 +71,23 @@ return function ()
   end
 
   s.release = function (x, y)
+    if zoom_obj ~= nil then
+      if zoom_pressed then
+        zoom_in_time, zoom_out_time = -1, 0
+      end
+      zoom_pressed = false
+      return true
+    end
+
     p_hold_time, p_rel_time = -1, 0
     for i = 1, #objs do
       local o = objs[i]
       local dist = dist_ellipse(o.rx, o.ry, px - o.x, py - o.y)
       if dist <= pr then
         print('hit')
+        -- Activate object
+        zoom_obj = o
+        zoom_in_time, zoom_out_time = 0, -1
       end
     end
     px_rel, py_rel = px, py
@@ -83,6 +95,15 @@ return function ()
   end
 
   s.update = function ()
+    if zoom_in_time >= 0 then zoom_in_time = zoom_in_time + 1
+    elseif zoom_out_time >= 0 then
+      zoom_out_time = zoom_out_time + 1
+      if zoom_out_time == 120 then
+        zoom_obj = nil
+        zoom_out_time = -1
+      end
+    end
+
     if p_hold_time >= 0 then
       pr = pr + (PT_HELD_R - pr) * 0.01
     elseif pr ~= PT_INITIAL_R then
@@ -103,6 +124,27 @@ return function ()
     love.graphics.clear(1, 1, 0.99)
     love.graphics.setColor(1, 1, 1)
     draw.img('intro_bg', W / 2, H / 2, W, H)
+
+    if zoom_obj ~= nil then
+      local o_alpha, move_prog
+      if zoom_in_time >= 0 then
+        local x = math.min(1, zoom_in_time / 120)
+        o_alpha = 1 - (1 - x) * (1 - x)
+        move_prog = (1 - x) * math.exp(-3 * x)
+      else
+        local x = math.min(1, zoom_out_time / 120)
+        o_alpha = (1 - x) * (1 - x) * (1 - x)
+        if x < 0.5 then move_prog = x * x * x * 4
+        else move_prog = 1 - (1 - x) * (1 - x) * (1 - x) * 4 end
+      end
+      love.graphics.setColor(1, 1, 1, o_alpha)
+      local x_target, y_target = W * 0.275, H * 0.5
+      local scale = 0.3 + 0.3 * math.sqrt(math.sqrt(o_alpha))
+      draw.img(zoom_obj.img,
+        x_target + (zoom_obj.x - x_target) * move_prog,
+        y_target + (zoom_obj.y - y_target) * move_prog,
+        H * scale, H * scale)
+    end
 
     local p_alpha = 0
     local px_anim, py_anim = px, py
