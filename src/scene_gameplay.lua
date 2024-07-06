@@ -1,5 +1,6 @@
 local draw = require 'draw_utils'
 local audio = require 'audio'
+local scroll = require 'scroll'
 
 local timeline_scroll = function ()
   local s = {}
@@ -166,6 +167,7 @@ return function ()
     [5] = {
       {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, zoom_img = 'bee', text = '不知道是什么'},
       {x = 0.4*W, y = 0.6*H, rx = 80, ry = 80, zoom_img = 'bee', text = '不知道是什么', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
+      {x = 0.2*W, y = 0.4*H, rx = 30, ry = 120, zoom_img = 'bee', cont_scroll = H * 2},
       {x = 0.5*W, y = 0.5*H, rx = 100, ry = 120, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 100, index = 1},
     },
     [20] = {
@@ -200,6 +202,7 @@ return function ()
   local zoom_pressed = false
 
   local zoom_text
+  local zoom_scroll
   local UNLOCK_SEQ_PROG_RATE = 6
   local zoom_seq_prog
 
@@ -233,6 +236,8 @@ return function ()
           else
             zoom_pressed = true
           end
+        elseif zoom_scroll ~= nil then
+          zoom_scroll.press(y, x)
         else
           zoom_pressed = true
         end
@@ -249,6 +254,7 @@ return function ()
   end
 
   s.move = function (x, y)
+    if zoom_scroll ~= nil then zoom_scroll.move(y, x) end
   end
 
   -- https://stackoverflow.com/a/46007540
@@ -324,6 +330,13 @@ return function ()
           end
         end
         sack_btn = false
+      elseif zoom_scroll then
+        if zoom_scroll.release(y, x) == 2 then
+          zoom_in_time, zoom_out_time = -1, 0
+          if zoom_obj.unlock and album_idx == zoom_obj.unlock then
+            synchronise_tl()
+          end
+        end
       end
       return true
     end
@@ -353,6 +366,13 @@ return function ()
         -- Text
         if o.text ~= nil then
           zoom_text = love.graphics.newText(font(42), o.text)
+        end
+        -- Scrolling
+        if o.cont_scroll ~= nil then
+          zoom_scroll = scroll({
+            x_min = -(o.cont_scroll - H),
+            x_max = 0,
+          })
         end
         -- Object unlocks a tick in the album?
         if o.unlock --[[ and not tl.find_tag(o.unlock) ]] then
@@ -431,6 +451,10 @@ return function ()
       objs = objs_in_album[album_idx]
     end
 
+    if zoom_scroll ~= nil then
+      zoom_scroll.update()
+    end
+
     if sack_key_match_time >= 0 then
       sack_key_match_time = sack_key_match_time + 1
       if sack_key_match_time >= 240 then
@@ -502,6 +526,9 @@ return function ()
       local x_target, y_target = W * 0.275, H * 0.5
       if zoom_text == nil then
         x_target = W * 0.5
+      end
+      if zoom_scroll ~= nil then
+        y_target = H * 0.5 + zoom_scroll.dx
       end
       local scale = 0.3 + 0.3 * math.sqrt(math.sqrt(o_alpha))
       local img = zoom_obj.zoom_img
@@ -616,10 +643,8 @@ return function ()
   s.wheel = function (x, y)
     if sack_key_match_time >= 0 then return end
     if s4_seq_time >= 0 then return end
-    if zoom_obj ~= nil then
-      if zoom_in_time >= 120 and tl_obj_unlock
-        and zoom_obj.unlock ~= album_idx
-      then
+    if zoom_obj ~= nil and zoom_in_time >= 120 then
+      if tl_obj_unlock and zoom_obj.unlock ~= album_idx then
         if zoom_seq_prog < #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE
           and y * (zoom_obj.unlock - album_idx) > 0
         then
@@ -629,6 +654,8 @@ return function ()
         else
           tl_obj_unlock.push(y)
         end
+      elseif zoom_scroll then
+        zoom_scroll.impulse(y * 3)
       end
     else
       tl.push(y)
