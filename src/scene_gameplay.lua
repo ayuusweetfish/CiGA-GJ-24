@@ -145,16 +145,17 @@ return function ()
     },
     [3] = {
       {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, zoom_img = 'bee'},
+      {x = 0.2*W, y = 0.3*H, rx = 50, ry = 60, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid'},
       {x = 0.5*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 20, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
-      {x = 0.3*W, y = 0.2*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 4, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
+      {x = 0.3*W, y = 0.2*H, rx = 120, ry = 80, zoom_img = 'bee', star_sack = true},
+      -- {x = 0.3*W, y = 0.2*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 4, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
     },
     [4] = {
       {x = 0.5*W, y = 0.5*H, rx = 50, ry = 50, zoom_img = 'bee'},
+      {x = 0.2*W, y = 0.4*H, rx = 50, ry = 60, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid_broken'},
       {x = 0.6*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 21, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
     },
     [5] = {
-      {x = 0.2*W, y = 0.3*H, rx = 50, ry = 60, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid'},
-      {x = 0.2*W, y = 0.4*H, rx = 50, ry = 60, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid_broken'},
       {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, zoom_img = 'bee'},
       {x = 0.4*W, y = 0.6*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
       {x = 0.5*W, y = 0.5*H, rx = 100, ry = 120, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 100, index = 1},
@@ -168,6 +169,13 @@ return function ()
   }
   local album_idx = 5
   local objs = objs_in_album[album_idx]
+
+  local STAR_SACK_BTNS = {
+    {x = W*0.5, y = H*0.5, r = 100, img = 'bee'},
+    {x = W*0.4, y = H*0.5, r = 100, img = 'bee'},
+    {x = W*0.5, y = H*0.6, r = 100, img = 'bee'},
+    {x = W*0.4, y = H*0.6, r = 100, img = 'bee'},
+  }
 
   local PT_INITIAL_R = W * 0.01
   local PT_HELD_R = W * 0.03
@@ -184,8 +192,11 @@ return function ()
   local UNLOCK_SEQ_PROG_RATE = 6
   local zoom_seq_prog
 
+  local sack_btn = nil
+
   local tl = timeline_scroll()
-  tl.add_tick(album_ticks[5], 5)
+  -- tl.add_tick(album_ticks[5], 5)
+  tl.add_tick(album_ticks[3], 3)
 
   local tl_obj_unlock
 
@@ -195,7 +206,24 @@ return function ()
     if s4_seq_time >= 0 then return end
     if zoom_obj ~= nil then
       if zoom_in_time >= 120 then
-        zoom_pressed = true
+        if zoom_obj.star_sack then
+          -- Sack
+          local best_dist, best_btn = 1e9, nil
+          for i = 1, #STAR_SACK_BTNS do
+            local b = STAR_SACK_BTNS[i]
+            local dist = (x - b.x) * (x - b.x) + (y - b.y) * (y - b.y)
+            if dist < b.r * b.r and dist < best_dist then
+              best_dist, best_btn = dist, b
+            end
+          end
+          if best_btn ~= nil then
+            sack_btn = best_btn
+          else
+            zoom_pressed = true
+          end
+        else
+          zoom_pressed = true
+        end
       end
       return true
     end
@@ -259,8 +287,16 @@ return function ()
         if zoom_obj.unlock and album_idx == zoom_obj.unlock then
           synchronise_tl()
         end
+        zoom_pressed = false
+      elseif sack_btn then
+        local b = sack_btn
+        local dist = (x - b.x) * (x - b.x) + (y - b.y) * (y - b.y)
+        if dist < b.r * b.r then
+          -- Pressed sack button
+          b.active = not b.active
+        end
+        sack_btn = false
       end
-      zoom_pressed = false
       return true
     end
 
@@ -374,6 +410,21 @@ return function ()
     love.graphics.setColor(1, 1, 1)
     draw.img('intro_bg', W / 2, H / 2, W, H)
 
+    -- In-scene objects
+    love.graphics.setColor(1, 1, 1)
+    for i = 1, #objs do
+      local o = objs[i]
+      if o.scene_sprites then
+        draw.img(o.scene_sprites[o.index], o.x, o.y, o.sprite_w)
+      end
+    end
+    love.graphics.setColor(1, 0.8, 0.7, 0.3)
+    for i = 1, #objs do
+      local o = objs[i]
+      love.graphics.ellipse('fill', o.x, o.y, o.rx, o.ry)
+    end
+
+    -- Zoom-in
     if zoom_obj ~= nil then
       local o_alpha, move_prog
       if zoom_in_time >= 0 then
@@ -388,6 +439,9 @@ return function ()
       end
       love.graphics.setColor(1, 1, 1, o_alpha)
       local x_target, y_target = W * 0.275, H * 0.5
+      if zoom_obj.star_sack then
+        x_target = W * 0.5
+      end
       local scale = 0.3 + 0.3 * math.sqrt(math.sqrt(o_alpha))
       local img = zoom_obj.zoom_img
       if zoom_obj.unlocked_img and album_idx == zoom_obj.unlock then
@@ -395,24 +449,24 @@ return function ()
       elseif zoom_obj.unlock_seq and zoom_seq_prog >= 10 then
         img = zoom_obj.unlock_seq[math.floor(zoom_seq_prog / UNLOCK_SEQ_PROG_RATE)]
       end
-      draw.img(img,
-        x_target + (zoom_obj.x - x_target) * move_prog,
-        y_target + (zoom_obj.y - y_target) * move_prog,
-        H * scale, H * scale)
-    end
+      local x_cen = x_target + (zoom_obj.x - x_target) * move_prog
+      local y_cen = y_target + (zoom_obj.y - y_target) * move_prog
+      draw.img(img, x_cen, y_cen, H * scale, H * scale)
 
-    -- In-scene objects
-    love.graphics.setColor(1, 1, 1)
-    for i = 1, #objs do
-      local o = objs[i]
-      if o.scene_sprites then
-        draw.img(o.scene_sprites[o.index], o.x, o.y, o.sprite_w)
+      -- Star sack?
+      if zoom_obj.star_sack then
+        for i = 1, #STAR_SACK_BTNS do
+          local b = STAR_SACK_BTNS[i]
+          if b.active then
+            local x_offs = b.x - W / 2
+            local y_offs = b.y - H / 2
+            local rel_scale = scale / 0.6
+            x_offs = x_offs * rel_scale
+            y_offs = y_offs * rel_scale
+            draw.img(b.img, x_cen + x_offs, y_cen + y_offs, b.r * 2 * rel_scale)
+          end
+        end
       end
-    end
-    love.graphics.setColor(1, 0.8, 0.7, 0.3)
-    for i = 1, #objs do
-      local o = objs[i]
-      love.graphics.ellipse('fill', o.x, o.y, o.rx, o.ry)
     end
 
     -- Pointer
