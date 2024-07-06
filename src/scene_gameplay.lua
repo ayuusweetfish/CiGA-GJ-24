@@ -147,8 +147,8 @@ return function ()
       {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, zoom_img = 'bee'},
       {x = 0.2*W, y = 0.3*H, rx = 50, ry = 60, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid'},
       {x = 0.5*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 20, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
-      {x = 0.3*W, y = 0.2*H, rx = 120, ry = 80, zoom_img = 'bee', star_sack = true},
-      -- {x = 0.3*W, y = 0.2*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 4, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
+      {x = 0.3*W, y = 0.2*H, rx = 120, ry = 80, zoom_img = 'bee', star_sack = true, child =
+        {x = 0.3*W, y = 0.2*H, rx = 120, ry = 80, zoom_img = 'bee', unlock = 4, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'}},
     },
     [4] = {
       {x = 0.5*W, y = 0.5*H, rx = 50, ry = 50, zoom_img = 'bee'},
@@ -171,10 +171,10 @@ return function ()
   local objs = objs_in_album[album_idx]
 
   local STAR_SACK_BTNS = {
-    {x = W*0.5, y = H*0.5, r = 100, img = 'bee'},
-    {x = W*0.4, y = H*0.5, r = 100, img = 'bee'},
-    {x = W*0.5, y = H*0.6, r = 100, img = 'bee'},
-    {x = W*0.4, y = H*0.6, r = 100, img = 'bee'},
+    {x = W*0.5, y = H*0.5, r = 100, img = 'bee', key = true},
+    {x = W*0.4, y = H*0.5, r = 100, img = 'bee', key = true},
+    {x = W*0.5, y = H*0.6, r = 100, img = 'bee', key = true},
+    {x = W*0.4, y = H*0.6, r = 100, img = 'bee', key = false},
   }
 
   local PT_INITIAL_R = W * 0.01
@@ -193,6 +193,7 @@ return function ()
   local zoom_seq_prog
 
   local sack_btn = nil
+  local sack_key_match_time = -1
 
   local tl = timeline_scroll()
   -- tl.add_tick(album_ticks[5], 5)
@@ -203,6 +204,7 @@ return function ()
   local s4_seq_time = -1
 
   s.press = function (x, y)
+    if sack_key_match_time >= 0 then return end
     if s4_seq_time >= 0 then return end
     if zoom_obj ~= nil then
       if zoom_in_time >= 120 then
@@ -277,10 +279,13 @@ return function ()
     -- Synchronise timelines
     tl.tx = tl.find_tag(unlock)
     tl.dx = tl.tx
+    tl.update()
     tl_obj_unlock = nil
   end
 
   s.release = function (x, y)
+    if sack_key_match_time >= 0 then return end
+    if s4_seq_time >= 0 then return end
     if zoom_obj ~= nil then
       if zoom_pressed then
         zoom_in_time, zoom_out_time = -1, 0
@@ -294,6 +299,19 @@ return function ()
         if dist < b.r * b.r then
           -- Pressed sack button
           b.active = not b.active
+          -- Check key match
+          local key_match = true
+          for i = 1, #STAR_SACK_BTNS do
+            if (STAR_SACK_BTNS[i].active or false) ~= STAR_SACK_BTNS[i].key then
+              key_match = false
+              break
+            end
+          end
+          if key_match then
+            zoom_obj.sack_open = true
+            sack_key_match_time = 0
+            -- TODO: Play sound
+          end
         end
         sack_btn = false
       end
@@ -314,6 +332,8 @@ return function ()
       -- Activate object
       if o.zoom_img then
         -- Zoom-in; possibly unlocks new album scene
+        -- Use the object contained in the sack, if the latter is open (unlocked)
+        if o.star_sack and o.sack_open then o = o.child end
         zoom_obj = o
         zoom_in_time, zoom_out_time = 0, -1
         -- Object unlocks a tick in the album?
@@ -384,6 +404,14 @@ return function ()
       end
       -- Update objects
       objs = objs_in_album[album_idx]
+    end
+
+    if sack_key_match_time >= 0 then
+      sack_key_match_time = sack_key_match_time + 1
+      if sack_key_match_time >= 240 then
+        sack_key_match_time = -1
+        zoom_in_time, zoom_out_time = -1, 0
+      end
     end
 
     -- Special case: entering album scene 4
@@ -549,6 +577,7 @@ return function ()
   end
 
   s.wheel = function (x, y)
+    if sack_key_match_time >= 0 then return end
     if s4_seq_time >= 0 then return end
     if zoom_obj ~= nil then
       if zoom_in_time >= 120 and tl_obj_unlock
