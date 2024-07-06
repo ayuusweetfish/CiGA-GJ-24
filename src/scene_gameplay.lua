@@ -1,4 +1,5 @@
 local draw = require 'draw_utils'
+local audio = require 'audio'
 
 local timeline_scroll = function ()
   local s = {}
@@ -152,6 +153,8 @@ return function ()
       {x = 0.6*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 21, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
     },
     [5] = {
+      {x = 0.2*W, y = 0.3*H, rx = 50, ry = 60, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid'},
+      {x = 0.2*W, y = 0.4*H, rx = 50, ry = 60, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid_broken'},
       {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, zoom_img = 'bee'},
       {x = 0.4*W, y = 0.6*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
       {x = 0.5*W, y = 0.5*H, rx = 100, ry = 120, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 100, index = 1},
@@ -287,6 +290,14 @@ return function ()
       elseif o.scene_sprites then
         -- In-scene image
         o.index = (o.index == #o.scene_sprites and 1 or o.index + 1)
+        if o.musical_box then
+          -- Music!
+          if o.index == 2 then
+            audio.sfx(o.musical_box, nil, o.musical_box == 'orchid')
+          else
+            audio.sfx_stop(o.musical_box)
+          end
+        end
       end
     end
     px_rel, py_rel = px, py
@@ -320,12 +331,24 @@ return function ()
     end
 
     tl.update()
+    local last_album_idx = album_idx
     album_idx = tl.sel_tag
     if tl_obj_unlock then
       tl_obj_unlock.update()
       album_idx = tl_obj_unlock.sel_tag
     end
-    objs = objs_in_album[album_idx]
+    if album_idx ~= last_album_idx then
+      -- Stop sounds
+      for i = 1, #objs do
+        local o = objs[i]
+        if o.musical_box then
+          audio.sfx_stop(o.musical_box)
+          o.index = 1   -- Turn off
+        end
+      end
+      -- Update objects
+      objs = objs_in_album[album_idx]
+    end
 
     -- Special case: entering album scene 4
     if s4_seq_time == -1 and tl_obj_unlock and zoom_obj.unlock == 4 then
@@ -426,6 +449,13 @@ return function ()
     if blur_alpha > 0 then
       love.graphics.setColor(0.04, 0.04, 0.04, blur_alpha)
       love.graphics.rectangle('fill', 0, 0, W, H)
+    end
+    -- Audio volume
+    for i = 1, #objs do
+      local o = objs[i]
+      if o.musical_box then
+        audio.sfx_vol(o.musical_box, 1 - blur_alpha)
+      end
     end
 
     -- Timeline
