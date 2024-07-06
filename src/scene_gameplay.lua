@@ -136,30 +136,31 @@ return function ()
 
   local objs_in_album = {
     [1] = {
-      {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120, img = 'bee'},
-      {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, img = 'bee', unlock = 3},
+      {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120, zoom_img = 'bee'},
+      {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 3},
     },
     [2] = {
-      {x = 0.7*W, y = 0.4*H, rx = 120, ry = 100, img = 'bee'},
+      {x = 0.7*W, y = 0.4*H, rx = 120, ry = 100, zoom_img = 'bee'},
     },
     [3] = {
-      {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, img = 'bee'},
-      {x = 0.5*W, y = 0.7*H, rx = 80, ry = 80, img = 'bee', unlock = 20},
-      {x = 0.3*W, y = 0.2*H, rx = 80, ry = 80, img = 'bee', unlock = 4},
+      {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, zoom_img = 'bee'},
+      {x = 0.5*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 20},
+      {x = 0.3*W, y = 0.2*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 4},
     },
     [4] = {
-      {x = 0.5*W, y = 0.5*H, rx = 50, ry = 50, img = 'bee'},
-      {x = 0.6*W, y = 0.7*H, rx = 80, ry = 80, img = 'bee', unlock = 21},
+      {x = 0.5*W, y = 0.5*H, rx = 50, ry = 50, zoom_img = 'bee'},
+      {x = 0.6*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 21},
     },
     [5] = {
-      {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, img = 'bee'},
-      {x = 0.4*W, y = 0.6*H, rx = 80, ry = 80, img = 'bee', unlock = 1},
+      {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, zoom_img = 'bee'},
+      {x = 0.4*W, y = 0.6*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 1},
+      {x = 0.5*W, y = 0.5*H, rx = 100, ry = 120, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 100, index = 1},
     },
     [20] = {
-      {x = 0.8*W, y = 0.5*H, rx = 30, ry = 30, img = 'bee'},
+      {x = 0.8*W, y = 0.5*H, rx = 30, ry = 30, zoom_img = 'bee'},
     },
     [21] = {
-      {x = 0.2*W, y = 0.5*H, rx = 30, ry = 30, img = 'bee'},
+      {x = 0.2*W, y = 0.5*H, rx = 30, ry = 30, zoom_img = 'bee'},
     },
   }
   local album_idx = 5
@@ -258,11 +259,19 @@ return function ()
     end
 
     p_hold_time, p_rel_time = -1, 0
+    local best_dist, best_obj = pr, nil
     for i = 1, #objs do
       local o = objs[i]
       local dist = dist_ellipse(o.rx, o.ry, px - o.x, py - o.y)
-      if dist <= pr then
-        -- Activate object
+      if dist < best_dist then
+        best_dist, best_obj = dist, o
+      end
+    end
+    if best_obj ~= nil then
+      local o = best_obj
+      -- Activate object
+      if o.zoom_img then
+        -- Zoom-in; possibly unlocks new album scene
         zoom_obj = o
         zoom_in_time, zoom_out_time = 0, -1
         -- Object unlocks a tick in the album?
@@ -271,6 +280,9 @@ return function ()
           tl_obj_unlock.add_tick(album_ticks[album_idx], album_idx)
           tl_obj_unlock.add_tick(album_ticks[o.unlock], o.unlock)
         end
+      elseif o.scene_sprites then
+        -- In-scene image
+        o.index = (o.index == #o.scene_sprites and 1 or o.index + 1)
       end
     end
     px_rel, py_rel = px, py
@@ -350,12 +362,27 @@ return function ()
       love.graphics.setColor(1, 1, 1, o_alpha)
       local x_target, y_target = W * 0.275, H * 0.5
       local scale = 0.3 + 0.3 * math.sqrt(math.sqrt(o_alpha))
-      draw.img(zoom_obj.img,
+      draw.img(zoom_obj.zoom_img,
         x_target + (zoom_obj.x - x_target) * move_prog,
         y_target + (zoom_obj.y - y_target) * move_prog,
         H * scale, H * scale)
     end
 
+    -- In-scene objects
+    love.graphics.setColor(1, 1, 1)
+    for i = 1, #objs do
+      local o = objs[i]
+      if o.scene_sprites then
+        draw.img(o.scene_sprites[o.index], o.x, o.y, o.sprite_w)
+      end
+    end
+    love.graphics.setColor(1, 0.8, 0.7, 0.3)
+    for i = 1, #objs do
+      local o = objs[i]
+      love.graphics.ellipse('fill', o.x, o.y, o.rx, o.ry)
+    end
+
+    -- Pointer
     local p_alpha = 0
     local px_anim, py_anim = px, py
     if p_rel_time >= 0 then
@@ -373,12 +400,6 @@ return function ()
     love.graphics.circle('line', px_anim, py_anim, pr)
     love.graphics.setColor(1, 0.8, 0.7, p_alpha)
     love.graphics.circle('fill', px_anim, py_anim, pr)
-
-    love.graphics.setColor(1, 0.8, 0.7, 0.3)
-    for i = 1, #objs do
-      local o = objs[i]
-      love.graphics.ellipse('fill', o.x, o.y, o.rx, o.ry)
-    end
 
     -- Blur
     local blur_alpha = 0
