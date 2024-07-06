@@ -6,17 +6,62 @@ local timeline_scroll = function ()
   local ticks = {}
   local tags = {}
 
+  s.x_min = 1
+  s.x_max = 0
+
   s.dx = 1
   s.tx = 1
   s.ticks = ticks
-  s.tags = {}
+  s.tags = tags
   s.dx_disp = 0
   s.sel_tag = nil
   s.blur_disp = 0
 
   s.add_tick = function (t, tag)
-    ticks[#ticks + 1] = t
-    tags[#tags + 1] = tag
+    local pos = #ticks + 1
+    for i = 1, #ticks do
+      if ticks[i] > t then
+        pos = i
+        break
+      end
+    end
+    table.insert(ticks, pos, t)
+    table.insert(tags, pos, tag)
+    if #ticks >= 2 and s.tx >= pos then
+      s.tx = s.tx + 1
+      s.dx = s.dx + 1
+    end
+    s.x_max = #ticks
+  end
+
+  s.remove_tick = function (tag)
+    local pos
+    for i = 1, #ticks do
+      if tags[i] == tag then
+        pos = i
+        break
+      end
+    end
+    if pos ~= nil then
+      table.remove(ticks, pos)
+      table.remove(tags, pos)
+      if s.tx >= pos then
+        s.tx = s.tx - 1
+        s.dx = s.dx - 1
+      end
+      s.x_max = #ticks
+    end
+  end
+
+  s.find_tag = function (tag)
+    for i = 1, #tags do if tags[i] == tag then return i end end
+  end
+
+  s.modify_tag = function (old_tag, new_tag)
+    for i = 1, #tags do if tags[i] == old_tag then
+      tags[i] = new_tag
+      return
+    end end
   end
 
   s.push = function (dx)
@@ -30,11 +75,13 @@ local timeline_scroll = function ()
   end
 
   s.update = function ()
+    local x_min, x_max = s.x_min, s.x_max
+
     -- Pull into range
-    if s.tx < 1 then
-      s.tx = pull_near(s.tx, 1, 0.08)
-    elseif s.tx > #ticks then
-      s.tx = pull_near(s.tx, #ticks, 0.08)
+    if s.tx < x_min then
+      s.tx = pull_near(s.tx, x_min, 0.08)
+    elseif s.tx > x_max then
+      s.tx = pull_near(s.tx, x_max, 0.08)
     else
       local i = math.floor(s.tx)
       target = i + (s.tx < i + 0.5 and 0 or 1)
@@ -43,13 +90,13 @@ local timeline_scroll = function ()
 
     s.dx = pull_near(s.dx, s.tx, 0.08)
 
-    if s.dx < 1 then
-      s.dx_disp = ticks[1] - (ticks[2] - ticks[1]) * (1 - s.dx)
-      s.sel_tag = tags[1]
+    if s.dx < x_min then
+      s.dx_disp = ticks[x_min] - (ticks[x_min + 1] - ticks[x_min]) * (x_min - s.dx)
+      s.sel_tag = tags[x_min]
       s.blur_disp = 0
-    elseif s.dx >= #ticks then
-      s.dx_disp = ticks[#ticks] + (ticks[#ticks] - ticks[#ticks - 1]) * (s.dx - #ticks)
-      s.sel_tag = tags[#ticks]
+    elseif s.dx >= x_max then
+      s.dx_disp = ticks[x_max] + (ticks[x_max] - ticks[x_max - 1]) * (s.dx - x_max)
+      s.sel_tag = tags[x_max]
       s.blur_disp = 0
     else
       local i = math.floor(s.dx)
@@ -68,17 +115,25 @@ return function ()
   local W, H = W, H
   local font = _G['global_font']
 
+  local album_ticks = {0, 0.25, 0.5, 0.75, 1}
+
   local objs_in_album = {
     [1] = {
       {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120, img = 'bee'},
     },
     [2] = {
       {x = 0.7*W, y = 0.4*H, rx = 120, ry = 100, img = 'bee'},
+      {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, img = 'bee', unlock = 3},
     },
     [3] = {
+      {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, img = 'bee'},
+    },
+    [5] = {
+      {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, img = 'bee'},
     },
   }
-  local objs = objs_in_album[1]
+  local album_idx = 1
+  local objs = objs_in_album[album_idx]
 
   local PT_INITIAL_R = W * 0.01
   local PT_HELD_R = W * 0.03
@@ -93,9 +148,8 @@ return function ()
   local zoom_pressed = false
 
   local tl = timeline_scroll()
-  tl.add_tick(0, 1)
-  tl.add_tick(0.25, 2)
-  tl.add_tick(1, 3)
+  tl.add_tick(album_ticks[2], 2)
+  tl.add_tick(album_ticks[5], 5)
 
   s.press = function (x, y)
     if zoom_obj ~= nil then
@@ -150,6 +204,16 @@ return function ()
     if zoom_obj ~= nil then
       if zoom_pressed then
         zoom_in_time, zoom_out_time = -1, 0
+        if zoom_obj.unlock then
+          if album_idx == zoom_obj.unlock and not tl.find_tag(zoom_obj.unlock) then
+            -- Set to unlocked
+            tl.modify_tag(-zoom_obj.unlock, zoom_obj.unlock)
+          else
+            -- No-op if already unlocked
+            tl.remove_tick(-zoom_obj.unlock)
+          end
+          tl.x_min, tl.x_max = 1, #tl.ticks
+        end
       end
       zoom_pressed = false
       return true
@@ -160,10 +224,17 @@ return function ()
       local o = objs[i]
       local dist = dist_ellipse(o.rx, o.ry, px - o.x, py - o.y)
       if dist <= pr then
-        print('hit')
         -- Activate object
         zoom_obj = o
         zoom_in_time, zoom_out_time = 0, -1
+        -- Object unlocks a tick in the album?
+        if o.unlock and not tl.find_tag(o.unlock) then
+          tl.add_tick(album_ticks[o.unlock], -o.unlock)
+          local pos1 = tl.find_tag(album_idx)
+          local pos2 = tl.find_tag(-o.unlock)
+          tl.x_min = math.min(pos1, pos2)
+          tl.x_max = math.max(pos1, pos2)
+        end
       end
     end
     px_rel, py_rel = px, py
@@ -196,7 +267,8 @@ return function ()
     end
 
     tl.update()
-    objs = objs_in_album[tl.sel_tag]
+    album_idx = math.abs(tl.sel_tag)
+    objs = objs_in_album[album_idx]
   end
 
   s.draw = function ()
@@ -260,14 +332,25 @@ return function ()
     love.graphics.setLineWidth(4)
     love.graphics.line(W * 0.85, H * 0.1, W * 0.85, H * 0.9)
     for i = 1, #tl.ticks do
-      love.graphics.circle('fill', W * 0.85, H * (0.1 + tl.ticks[i] * 0.8), 12)
+      if tl.tags[i] > 0 then
+        love.graphics.circle('fill', W * 0.85, H * (0.1 + tl.ticks[i] * 0.8), 12)
+      end
     end
     love.graphics.setColor(1, 1, 1)
     love.graphics.circle('fill', W * 0.85, H * (0.1 + tl.dx_disp * 0.8), 20)
   end
 
   s.wheel = function (x, y)
-    tl.push(y)
+    if zoom_obj ~= nil then
+      if zoom_in_time >= 120
+        and zoom_obj.unlock
+        and zoom_obj.unlock ~= album_idx
+      then
+        tl.push(y)
+      end
+    else
+      tl.push(y)
+    end
   end
 
   s.destroy = function ()
