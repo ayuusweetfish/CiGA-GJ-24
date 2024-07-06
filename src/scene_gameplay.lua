@@ -4,41 +4,59 @@ local timeline_scroll = function ()
   local s = {}
 
   local ticks = {}
+  local tags = {}
 
   s.dx = 1
   s.tx = 1
   s.ticks = ticks
+  s.tags = {}
   s.dx_disp = 0
+  s.sel_tag = nil
+  s.blur_disp = 0
 
-  s.add_tick = function (t)
+  s.add_tick = function (t, tag)
     ticks[#ticks + 1] = t
+    tags[#tags + 1] = tag
   end
 
   s.push = function (dx)
     s.tx = s.tx + dx * 0.05
   end
 
-  s.update = function ()
-    s.dx = s.dx + (s.tx - s.dx) * 0.08
+  local pull_near = function (a, b, rate)
+    local diff = b - a
+    if math.abs(diff) < 0.001 then return b
+    else return a + (b - a) * rate end
+  end
 
+  s.update = function ()
     -- Pull into range
     if s.tx < 1 then
-      s.tx = s.tx + (1 - s.tx) * 0.08
+      s.tx = pull_near(s.tx, 1, 0.08)
     elseif s.tx > #ticks then
-      s.tx = s.tx + (#ticks - s.tx) * 0.08
+      s.tx = pull_near(s.tx, #ticks, 0.08)
     else
       local i = math.floor(s.tx)
       target = i + (s.tx < i + 0.5 and 0 or 1)
-      s.tx = s.tx + (target - s.tx) * 0.02
+      s.tx = pull_near(s.tx, target, 0.02)
     end
+
+    s.dx = pull_near(s.dx, s.tx, 0.08)
 
     if s.dx < 1 then
       s.dx_disp = ticks[1] - (ticks[2] - ticks[1]) * (1 - s.dx)
+      s.sel_tag = tags[1]
+      s.blur_disp = 0
     elseif s.dx >= #ticks then
       s.dx_disp = ticks[#ticks] + (ticks[#ticks] - ticks[#ticks - 1]) * (s.dx - #ticks)
+      s.sel_tag = tags[#ticks]
+      s.blur_disp = 0
     else
       local i = math.floor(s.dx)
       s.dx_disp = ticks[i] + (ticks[i + 1] - ticks[i]) * (s.dx - i)
+      i = math.floor(s.dx + 0.5)
+      s.sel_tag = tags[i]
+      s.blur_disp = math.abs(s.dx - i) * 2
     end
   end
 
@@ -50,9 +68,17 @@ return function ()
   local W, H = W, H
   local font = _G['global_font']
 
-  local objs = {
-    {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120, img = 'bee'},
+  local objs_in_album = {
+    [1] = {
+      {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120, img = 'bee'},
+    },
+    [2] = {
+      {x = 0.7*W, y = 0.4*H, rx = 120, ry = 100, img = 'bee'},
+    },
+    [3] = {
+    },
   }
+  local objs = objs_in_album[1]
 
   local PT_INITIAL_R = W * 0.01
   local PT_HELD_R = W * 0.03
@@ -67,9 +93,9 @@ return function ()
   local zoom_pressed = false
 
   local tl = timeline_scroll()
-  tl.add_tick(0)
-  tl.add_tick(0.25)
-  tl.add_tick(1)
+  tl.add_tick(0, 1)
+  tl.add_tick(0.25, 2)
+  tl.add_tick(1, 3)
 
   s.press = function (x, y)
     if zoom_obj ~= nil then
@@ -170,6 +196,7 @@ return function ()
     end
 
     tl.update()
+    objs = objs_in_album[tl.sel_tag]
   end
 
   s.draw = function ()
@@ -223,6 +250,12 @@ return function ()
     end
 
     -- Timeline
+    if tl.blur_disp > 0.2 then
+      local alpha = (tl.blur_disp - 0.2) / 0.8
+      alpha = alpha^(1/3)
+      love.graphics.setColor(0.04, 0.04, 0.04, alpha)
+      love.graphics.rectangle('fill', 0, 0, W, H)
+    end
     love.graphics.setColor(1, 1, 1, 0.4)
     love.graphics.setLineWidth(4)
     love.graphics.line(W * 0.85, H * 0.1, W * 0.85, H * 0.9)
