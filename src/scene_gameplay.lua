@@ -87,7 +87,11 @@ local timeline_scroll = function ()
 
     s.dx = pull_near(s.dx, s.tx, 0.08)
 
-    if s.dx < x_min then
+    if x_max == 1 then
+      s.dx_disp = ticks[1]
+      s.sel_tag = tags[1]
+      s.blur_disp = 0
+    elseif s.dx < x_min then
       s.dx_disp = ticks[x_min] - math.min(0.5, ticks[x_min + 1] - ticks[x_min]) * (x_min - s.dx)
       s.sel_tag = tags[x_min]
       s.blur_disp = 0
@@ -134,7 +138,6 @@ return function ()
     [1] = {
       {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120, img = 'bee'},
       {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, img = 'bee', unlock = 3},
-      {x = 0.3*W, y = 0.2*H, rx = 80, ry = 80, img = 'bee', unlock = 4},
     },
     [2] = {
       {x = 0.7*W, y = 0.4*H, rx = 120, ry = 100, img = 'bee'},
@@ -142,13 +145,15 @@ return function ()
     [3] = {
       {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, img = 'bee'},
       {x = 0.5*W, y = 0.7*H, rx = 80, ry = 80, img = 'bee', unlock = 20},
-      {x = 0.6*W, y = 0.7*H, rx = 80, ry = 80, img = 'bee', unlock = 21},
+      {x = 0.3*W, y = 0.2*H, rx = 80, ry = 80, img = 'bee', unlock = 4},
     },
     [4] = {
       {x = 0.5*W, y = 0.5*H, rx = 50, ry = 50, img = 'bee'},
+      {x = 0.6*W, y = 0.7*H, rx = 80, ry = 80, img = 'bee', unlock = 21},
     },
     [5] = {
       {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, img = 'bee'},
+      {x = 0.4*W, y = 0.6*H, rx = 80, ry = 80, img = 'bee', unlock = 1},
     },
     [20] = {
       {x = 0.8*W, y = 0.5*H, rx = 30, ry = 30, img = 'bee'},
@@ -157,7 +162,7 @@ return function ()
       {x = 0.2*W, y = 0.5*H, rx = 30, ry = 30, img = 'bee'},
     },
   }
-  local album_idx = 1
+  local album_idx = 5
   local objs = objs_in_album[album_idx]
 
   local PT_INITIAL_R = W * 0.01
@@ -173,8 +178,6 @@ return function ()
   local zoom_pressed = false
 
   local tl = timeline_scroll()
-  tl.add_tick(album_ticks[1], 1)
-  tl.add_tick(album_ticks[2], 2)
   tl.add_tick(album_ticks[5], 5)
 
   local tl_obj_unlock
@@ -281,6 +284,7 @@ return function ()
       if zoom_out_time == 120 then
         zoom_obj = nil
         zoom_out_time = -1
+        tl_obj_unlock = nil
       end
     end
 
@@ -418,14 +422,15 @@ return function ()
     end
     love.graphics.setColor(1, 1, 1, 0.4)
     love.graphics.setLineWidth(4)
-    love.graphics.line(W * 0.85, y(timeline_min), W * 0.85, y(timeline_max))
+    local x = W * 0.9
+    love.graphics.line(x, y(timeline_min), x, y(timeline_max))
     for i = 1, #tl0.ticks do
       if tl0.tags[i] > 0 then
-        love.graphics.circle('fill', W * 0.85, y(tl0.ticks[i]), 12)
+        love.graphics.circle('fill', x, y(tl0.ticks[i]), 12)
       end
     end
     love.graphics.setColor(1, 1, 1)
-    love.graphics.circle('fill', W * 0.85, y(tl.dx_disp), 20)
+    love.graphics.circle('fill', x, y(tl.dx_disp), 20)
   end
 
   s.wheel = function (x, y)
