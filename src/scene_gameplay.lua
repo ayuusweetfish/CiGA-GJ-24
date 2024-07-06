@@ -97,7 +97,23 @@ local timeline_scroll = function ()
       s.blur_disp = 0
     else
       local i = math.floor(s.dx)
-      s.dx_disp = ticks[i] + (ticks[i + 1] - ticks[i]) * (s.dx - i)
+      if ticks[i + 1] - ticks[i] > 1 then
+        local t = s.dx - i
+        -- f(0) = 0
+        -- f(0.5) = 1
+        -- f(1) = ticks[i + 1] - ticks[i]
+        local f = function (t)
+          if t < 0.5 then return t * 2
+          else return (ticks[i + 1] - ticks[i] - 1) * (t - 0.5) * 2 + 1 end
+        end
+        if ticks[i] < 0 then
+          s.dx_disp = ticks[i + 1] - f(1 - t)
+        else
+          s.dx_disp = ticks[i] + f(t)
+        end
+      else
+        s.dx_disp = ticks[i] + (ticks[i + 1] - ticks[i]) * (s.dx - i)
+      end
       i = math.floor(s.dx + 0.5)
       s.sel_tag = tags[i]
       s.blur_disp = math.abs(s.dx - i) * 2
@@ -112,12 +128,12 @@ return function ()
   local W, H = W, H
   local font = _G['global_font']
 
-  local album_ticks = {0, 0.25, 0.5, 0.75, 1, [20] = -100}
+  local album_ticks = {0, 0.25, 0.5, 0.75, 1, [20] = -100, [21] = 90}
 
   local objs_in_album = {
     [1] = {
       {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120, img = 'bee'},
-      {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, img = 'bee', unlock = 20},
+      {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, img = 'bee', unlock = 3},
     },
     [2] = {
       {x = 0.7*W, y = 0.4*H, rx = 120, ry = 100, img = 'bee'},
@@ -125,12 +141,16 @@ return function ()
     [3] = {
       {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, img = 'bee'},
       {x = 0.5*W, y = 0.7*H, rx = 80, ry = 80, img = 'bee', unlock = 20},
+      {x = 0.6*W, y = 0.7*H, rx = 80, ry = 80, img = 'bee', unlock = 21},
     },
     [5] = {
       {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, img = 'bee'},
     },
     [20] = {
       {x = 0.8*W, y = 0.5*H, rx = 30, ry = 30, img = 'bee'},
+    },
+    [21] = {
+      {x = 0.2*W, y = 0.5*H, rx = 30, ry = 30, img = 'bee'},
     },
   }
   local album_idx = 1
@@ -341,12 +361,20 @@ return function ()
     local timeline_min = tl0.ticks[1]
     local timeline_max = tl0.ticks[#tl0.ticks]
     if tl_obj_unlock then
-      timeline_min = math.min(timeline_min, tl_obj_unlock.dx_disp)
-      timelaxe_max = math.max(timeline_max, tl_obj_unlock.dx_disp)
+      timeline_min = math.min(timeline_min,
+        math.max(tl_obj_unlock.ticks[1], tl_obj_unlock.dx_disp))
+      timeline_max = math.max(timeline_max,
+        math.min(tl_obj_unlock.ticks[#tl_obj_unlock.ticks], tl_obj_unlock.dx_disp))
     end
     local scale = 0
     if tl.dx_disp < -0.1 and timeline_min < 0 then
       scale = -tl.dx_disp - 0.1
+      local w = (1 - math.exp(-(-tl.dx_disp - 0.1) * 0.1))
+      scale = scale * (1 - w * 0.01)
+    elseif tl.dx_disp > 1.1 and timeline_max > 1 then
+      scale = tl.dx_disp - 1.1
+      local w = (1 - math.exp(-(tl.dx_disp - 1.1) * 0.1))
+      scale = scale * (1 - w * 0.01)
     end
     local y = function (t)
       local y = (t + scale) / (scale * 2 + 1)
