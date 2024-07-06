@@ -134,6 +134,11 @@ return function ()
   local font = _G['global_font']
 
   local album_ticks = {0, 0.25, 0.5, 0.75, 1, [20] = -100, [21] = 90}
+  local album_backgrounds = {
+    'intro_bg', 'intro_bg', 'intro_bg', 'intro_bg', 'intro_bg',
+    [20] = 'intro_bg',
+    [21] = 'intro_bg',
+  }
 
   local objs_in_album = {
     [1] = {
@@ -142,6 +147,9 @@ return function ()
     },
     [2] = {
       {x = 0.7*W, y = 0.4*H, rx = 120, ry = 100, zoom_img = 'bee'},
+      {x = 0.8*W, y = 0.4*H, rx = 120, ry = 100, zoom_img = 'bee'},
+      {x = 0.9*W, y = 0.4*H, rx = 120, ry = 100, zoom_img = 'bee', night_interactable = true},
+      {x = 0.6*W, y = 0.4*H, rx = 40, ry = 40, switch = true},
     },
     [3] = {
       {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, zoom_img = 'bee'},
@@ -170,6 +178,8 @@ return function ()
   local album_idx = 5
   local objs = objs_in_album[album_idx]
 
+  local light_on = true
+
   local STAR_SACK_BTNS = {
     {x = W*0.5, y = H*0.5, r = 100, img = 'bee', key = true},
     {x = W*0.4, y = H*0.5, r = 100, img = 'bee', key = true},
@@ -197,7 +207,7 @@ return function ()
 
   local tl = timeline_scroll()
   -- tl.add_tick(album_ticks[5], 5)
-  tl.add_tick(album_ticks[3], 3)
+  tl.add_tick(album_ticks[2], 2)
 
   local tl_obj_unlock
 
@@ -322,9 +332,13 @@ return function ()
     local best_dist, best_obj = pr, nil
     for i = 1, #objs do
       local o = objs[i]
-      local dist = dist_ellipse(o.rx, o.ry, px - o.x, py - o.y)
-      if dist < best_dist then
-        best_dist, best_obj = dist, o
+      -- Handle scene 2 where objects' interactivity depends on light state
+      local valid = (album_idx ~= 2 or o.switch or (light_on == not o.night_interactable))
+      if valid then
+        local dist = dist_ellipse(o.rx, o.ry, px - o.x, py - o.y)
+        if dist < best_dist then
+          best_dist, best_obj = dist, o
+        end
       end
     end
     if best_obj ~= nil then
@@ -354,6 +368,9 @@ return function ()
             audio.sfx_stop(o.musical_box)
           end
         end
+      elseif o.switch then
+        -- Light switch
+        light_on = not light_on
       end
     end
     px_rel, py_rel = px, py
@@ -436,7 +453,11 @@ return function ()
   s.draw = function ()
     love.graphics.clear(1, 1, 0.99)
     love.graphics.setColor(1, 1, 1)
-    draw.img('intro_bg', W / 2, H / 2, W, H)
+    local background = album_backgrounds[album_idx]
+    if album_idx == 2 and not light_on then
+      background = 'bee'
+    end
+    draw.img(background, W / 2, H / 2, W, H)
 
     -- In-scene objects
     love.graphics.setColor(1, 1, 1)
