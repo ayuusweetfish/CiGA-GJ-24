@@ -1,5 +1,36 @@
 local draw = require 'draw_utils'
 
+local timeline_scroll = function ()
+  local s = {}
+
+  s.dx = 0.5
+  s.tx = 0.5
+
+  local carousel_target
+
+  s.push = function (dx)
+    s.tx = s.tx + dx
+  end
+
+  s.update = function ()
+    s.dx = s.dx + (s.tx - s.dx) * 0.3
+
+    -- Pull towards target
+    if carousel_target ~= nil then
+      s.dx = s.dx + (carousel_target - s.dx) * 0.6
+    else
+      -- Pull into range
+      if s.tx < 0 then
+        s.tx = s.tx + (0 - s.tx) * 0.3
+      elseif s.tx > 1 then
+        s.tx = s.tx + (1 - s.tx) * 0.3
+      end
+    end
+  end
+
+  return s
+end
+
 return function ()
   local s = {}
   local W, H = W, H
@@ -20,6 +51,8 @@ return function ()
   local zoom_obj = nil
   local zoom_in_time, zoom_out_time = -1, -1
   local zoom_pressed = false
+
+  local tl = timeline_scroll()
 
   s.press = function (x, y)
     if zoom_obj ~= nil then
@@ -168,6 +201,16 @@ return function ()
       local o = objs[i]
       love.graphics.ellipse('fill', o.x, o.y, o.rx, o.ry)
     end
+
+    -- Timeline
+    tl.update()
+    love.graphics.setColor(1, 1, 1)
+    love.graphics.line(W * 0.85, H * 0.1, W * 0.85, H * 0.9)
+    love.graphics.circle('fill', W * 0.85, H * (0.1 + tl.dx * 0.8), 20)
+  end
+
+  s.wheel = function (x, y)
+    tl.push(y * 0.01)
   end
 
   s.destroy = function ()

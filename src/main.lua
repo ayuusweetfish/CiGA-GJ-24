@@ -85,6 +85,9 @@ function love.mousereleased(x, y, button, istouch, presses)
   curScene.release((x - offsX) / globalScale, (y - offsY) / globalScale)
   mouseScene = nil
 end
+function love.wheelmoved(x, y)
+  if curScene.wheel then curScene.wheel(x, y) end
+end
 
 local T = 0
 local timeStep = 1 / 240
