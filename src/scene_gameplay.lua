@@ -137,23 +137,23 @@ return function ()
   local objs_in_album = {
     [1] = {
       {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120, zoom_img = 'bee'},
-      {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 3},
+      {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 3, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
     },
     [2] = {
       {x = 0.7*W, y = 0.4*H, rx = 120, ry = 100, zoom_img = 'bee'},
     },
     [3] = {
       {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, zoom_img = 'bee'},
-      {x = 0.5*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 20},
-      {x = 0.3*W, y = 0.2*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 4},
+      {x = 0.5*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 20, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
+      {x = 0.3*W, y = 0.2*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 4, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
     },
     [4] = {
       {x = 0.5*W, y = 0.5*H, rx = 50, ry = 50, zoom_img = 'bee'},
-      {x = 0.6*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 21},
+      {x = 0.6*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 21, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
     },
     [5] = {
       {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, zoom_img = 'bee'},
-      {x = 0.4*W, y = 0.6*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 1},
+      {x = 0.4*W, y = 0.6*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
       {x = 0.5*W, y = 0.5*H, rx = 100, ry = 120, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 100, index = 1},
     },
     [20] = {
@@ -177,6 +177,9 @@ return function ()
   local zoom_obj = nil
   local zoom_in_time, zoom_out_time = -1, -1
   local zoom_pressed = false
+
+  local UNLOCK_SEQ_PROG_RATE = 6
+  local zoom_seq_prog
 
   local tl = timeline_scroll()
   tl.add_tick(album_ticks[5], 5)
@@ -279,6 +282,7 @@ return function ()
           tl_obj_unlock = timeline_scroll()
           tl_obj_unlock.add_tick(album_ticks[album_idx], album_idx)
           tl_obj_unlock.add_tick(album_ticks[o.unlock], o.unlock)
+          zoom_seq_prog = 0
         end
       elseif o.scene_sprites then
         -- In-scene image
@@ -362,7 +366,13 @@ return function ()
       love.graphics.setColor(1, 1, 1, o_alpha)
       local x_target, y_target = W * 0.275, H * 0.5
       local scale = 0.3 + 0.3 * math.sqrt(math.sqrt(o_alpha))
-      draw.img(zoom_obj.zoom_img,
+      local img = zoom_obj.zoom_img
+      if zoom_obj.unlocked_img and album_idx == zoom_obj.unlock then
+        img = zoom_obj.unlocked_img
+      elseif zoom_obj.unlock_seq and zoom_seq_prog >= 10 then
+        img = zoom_obj.unlock_seq[math.floor(zoom_seq_prog / UNLOCK_SEQ_PROG_RATE)]
+      end
+      draw.img(img,
         x_target + (zoom_obj.x - x_target) * move_prog,
         y_target + (zoom_obj.y - y_target) * move_prog,
         H * scale, H * scale)
@@ -460,7 +470,15 @@ return function ()
       if zoom_in_time >= 120 and tl_obj_unlock
         and zoom_obj.unlock ~= album_idx
       then
-        tl_obj_unlock.push(y)
+        if zoom_seq_prog < #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE
+          and y * (zoom_obj.unlock - album_idx) > 0
+        then
+          zoom_seq_prog = math.min(
+            #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE,
+            zoom_seq_prog + math.abs(y))
+        else
+          tl_obj_unlock.push(y)
+        end
       end
     else
       tl.push(y)
