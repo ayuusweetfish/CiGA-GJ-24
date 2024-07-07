@@ -317,6 +317,7 @@ return function ()
           synchronise_tl()
         end
         zoom_pressed = false
+        audio.sfx('object_close')
       elseif sack_btn then
         local b = sack_btn
         local dist = (x - b.x) * (x - b.x) + (y - b.y) * (y - b.y)
@@ -346,6 +347,7 @@ return function ()
           if zoom_obj.unlock and album_idx == zoom_obj.unlock then
             synchronise_tl()
           end
+          audio.sfx('object_close')
         end
       end
       return true
@@ -397,6 +399,11 @@ return function ()
           tl_obj_unlock.add_tick(album_ticks[album_idx], album_idx)
           tl_obj_unlock.add_tick(album_ticks[o.unlock], o.unlock)
           zoom_seq_prog = 0
+        end
+        if o.cont_scroll then
+          audio.sfx('letter_paper')
+        else
+          audio.sfx('object_activate')
         end
       elseif o.scene_sprites then
         -- In-scene image
