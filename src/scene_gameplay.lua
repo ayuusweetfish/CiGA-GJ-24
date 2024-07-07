@@ -138,17 +138,19 @@ bgm_light:setVolume(0)
 
 local bgm_cat, bgm_cat_update = audio.loop(
   nil, 0,
-  'aud/background_cat.ogg', (28 * 4) / (60 / 68),
+  'aud/background_cat.ogg', (28 * 4) * (60 / 68),
   1600 * 4
 )
-bgm_cat:setVolume(1)
+bgm_cat:setVolume(0)
+bgm_cat:play()
 
 local bgm_cat_rain, bgm_cat_rain_update = audio.loop(
   nil, 0,
-  'aud/background_cat_rain.ogg', (28 * 4) / (60 / 68),
+  'aud/background_cat_rain.ogg', (28 * 4) * (60 / 68),
   1600 * 4
 )
 bgm_cat_rain:setVolume(0)
+bgm_cat_rain:play()
 
 local since_bgm_update = 0
 local bgm_update_all = function ()
@@ -168,15 +170,29 @@ return function ()
 
   local album_ticks = {0, 0.25, 0.5, 0.75, 1, [20] = -100, [21] = 90}
   local album_backgrounds = {
-    'intro_bg', 'intro_bg', 'intro_bg', 'intro_bg', 'intro_bg',
+    'background_6',
+    'background_2',
+    'background_3',
+    'background_4',
+    'background_5',
+    'background_6',
     [20] = 'intro_bg',
     [21] = 'intro_bg',
   }
   local album_backgrounds_alter = {
-    [2] = 'bee',
-    [4] = 'bee',
-    [5] = 'intro_bg',
+    [2] = 'background_2',
+    [4] = 'background_4',
+    [5] = 'background_5',
   }
+  local bg_tracks = {
+    bgm_light,
+    bgm_cat,
+    bgm_cat,
+    bgm_cat_rain,
+    bgm_cat,
+    bgm_cat,
+  }
+  local bg_tracks_all = {bgm_light, bgm_cat, bgm_cat_rain}
 
   local objs_in_album = {
     [1] = {
@@ -250,18 +266,20 @@ return function ()
   local sack_key_match_time = -1
 
   local tl = timeline_scroll()
-  tl.add_tick(album_ticks[5], 5)
-  -- tl.add_tick(album_ticks[1], 1)
+  -- tl.add_tick(album_ticks[5], 5)
+  tl.add_tick(album_ticks[3], 3)
 
   local tl_obj_unlock
 
   local tl_time = -1
   local TIMELINE_STAY_DUR = 1200
 
+  local s1_seq_time = -1
   local s4_seq_time = -1
 
   s.press = function (x, y)
     if sack_key_match_time >= 0 then return end
+    if s1_seq_time >= 0 then return end
     if s4_seq_time >= 0 then return end
     if zoom_obj ~= nil then
       if zoom_in_time >= 120 then
@@ -345,6 +363,7 @@ return function ()
 
   s.release = function (x, y)
     if sack_key_match_time >= 0 then return end
+    if s1_seq_time >= 0 then return end
     if s4_seq_time >= 0 then return end
     if zoom_obj ~= nil then
       if zoom_pressed then
@@ -536,11 +555,20 @@ return function ()
       end
     end
 
-    -- Special case: entering album scene 4
-    if s4_seq_time == -1 and tl_obj_unlock and zoom_obj.unlock == 4 then
-      local i = tl_obj_unlock.find_tag(4)
+    -- Special case: entering album scenes 1 and 4
+    if tl_obj_unlock and zoom_obj and
+      ((s1_seq_time == -1 and zoom_obj.unlock == 1) or
+       (s4_seq_time == -1 and zoom_obj.unlock == 4))
+    then
+      local i = tl_obj_unlock.find_tag(zoom_obj.unlock)
       if (tl_obj_unlock.dx - 1.5) * (i - 1.5) >= 0 then
-        s4_seq_time = 0   -- This disables further interactions
+        -- This disables further interactions
+        if zoom_obj.unlock == 1 then
+          s1_seq_time = 0
+          bgm_light:play()
+        else
+          s4_seq_time = 0
+        end
         zoom_obj = nil
         zoom_in_time, zoom_out_time = -1, -1
         if zoom_text then -- XXX: to determine whether this is needed
@@ -550,20 +578,28 @@ return function ()
       end
     end
 
+    if s1_seq_time >= 0 then
+      s1_seq_time = s1_seq_time + 1
+      if s1_seq_time == 1645 then -- 240 ticks/s * (8 * 60/70 seconds)
+        s1_seq_time = -2  -- Finished
+        synchronise_tl()
+      end
+    end
+
     if s4_seq_time >= 0 then
       s4_seq_time = s4_seq_time + 1
-      if s4_seq_time == 240 then
+      if s4_seq_time == 480 then
         audio.sfx('thunder')
       end
-      if s4_seq_time == 480 then
-        s4_seq_time = -2  -- Played
+      if s4_seq_time == 960 then
+        s4_seq_time = -2  -- Finished
         synchronise_tl()
       end
     end
   end
 
   s.draw = function ()
-    love.graphics.clear(1, 1, 0.99)
+    love.graphics.clear(0.1, 0.1, 0.1)
     love.graphics.setColor(1, 1, 1)
     local background = album_backgrounds[album_idx]
     if album_idx == 2 and not light_on then
@@ -677,20 +713,36 @@ return function ()
       blur_alpha = (tl.blur_disp - 0.2) / 0.8
       blur_alpha = blur_alpha^(1/3)
     end
+    local audio_bg_blur = blur_alpha
+    if s1_seq_time >= 0 then
+      blur_alpha = 1
+    end
     if s4_seq_time >= 0 then
       blur_alpha = 1
-      if s4_seq_time >= 200 and s4_seq_time < 280 then blur_alpha = 0 end
+      if s4_seq_time >= 440 and s4_seq_time < 520 then blur_alpha = 0 end
+      if s4_seq_time >= 600 then
+        audio_bg_blur = math.max(0, 1 - (s4_seq_time - 600) / 240)
+      else
+        audio_bg_blur = 1
+      end
     end
     if blur_alpha > 0 then
       love.graphics.setColor(0.04, 0.04, 0.04, blur_alpha)
       love.graphics.rectangle('fill', 0, 0, W, H)
     end
     -- Audio volume
+    -- In-scene
     for i = 1, #objs do
       local o = objs[i]
       if o.musical_box then
         audio.sfx_vol(o.musical_box, 1 - blur_alpha)
       end
+    end
+    -- Background tracks
+    local bg_track = bg_tracks[album_idx]
+    for i = 1, #bg_tracks_all do bg_tracks_all[i]:setVolume(0) end
+    if bg_track then
+      bg_track:setVolume(1 - audio_bg_blur)
     end
 
     -- Timeline
