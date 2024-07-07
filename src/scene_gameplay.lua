@@ -180,7 +180,7 @@ return function ()
     [21] = 'intro_bg',
   }
   local album_backgrounds_alter = {
-    [2] = 'background_2',
+    [2] = 'intro_bg',
     [4] = 'background_4',
     [5] = 'background_5',
   }
@@ -271,7 +271,7 @@ return function ()
 
   local tl = timeline_scroll()
   -- tl.add_tick(album_ticks[5], 5)
-  tl.add_tick(album_ticks[3], 3)
+  tl.add_tick(album_ticks[2], 2)
 
   local tl_obj_unlock
 
@@ -481,6 +481,7 @@ return function ()
       elseif o.switch then
         -- Light switch
         light_on = not light_on
+        audio.sfx('switch')
       end
       if o.letter_initial then
         letter_read[album_idx] = true
