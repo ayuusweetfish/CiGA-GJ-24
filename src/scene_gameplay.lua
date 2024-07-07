@@ -664,7 +664,7 @@ return function ()
     if zoom_obj ~= nil and zoom_in_time >= 120 then
       if tl_obj_unlock and zoom_obj.unlock ~= album_idx then
         if zoom_seq_prog < #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE
-          and y * (zoom_obj.unlock - album_idx) > 0
+          and y * (album_ticks[zoom_obj.unlock] - album_ticks[album_idx]) > 0
         then
           zoom_seq_prog = math.min(
             #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE,
