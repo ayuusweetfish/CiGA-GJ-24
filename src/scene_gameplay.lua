@@ -687,19 +687,21 @@ return function ()
   s.wheel = function (x, y)
     if sack_key_match_time >= 0 then return end
     if s4_seq_time >= 0 then return end
-    if zoom_obj ~= nil and zoom_in_time >= 120 then
-      if tl_obj_unlock and zoom_obj.unlock ~= album_idx then
-        if zoom_seq_prog < #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE
-          and y * (album_ticks[zoom_obj.unlock] - album_ticks[album_idx]) > 0
-        then
-          zoom_seq_prog = math.min(
-            #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE,
-            zoom_seq_prog + math.abs(y))
-        else
-          tl_obj_unlock.push(y)
+    if zoom_obj ~= nil then
+      if zoom_in_time >= 120 then
+        if tl_obj_unlock and zoom_obj.unlock ~= album_idx then
+          if zoom_seq_prog < #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE
+            and y * (album_ticks[zoom_obj.unlock] - album_ticks[album_idx]) > 0
+          then
+            zoom_seq_prog = math.min(
+              #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE,
+              zoom_seq_prog + math.abs(y))
+          else
+            tl_obj_unlock.push(y)
+          end
+        elseif zoom_scroll then
+          zoom_scroll.impulse(y * 3)
         end
-      elseif zoom_scroll then
-        zoom_scroll.impulse(y * 3)
       end
     else
       tl.push(y)
