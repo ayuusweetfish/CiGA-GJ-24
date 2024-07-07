@@ -201,10 +201,15 @@ return function ()
       {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 3, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
     },
     [2] = {
+    --[[
       {x = 0.7*W, y = 0.4*H, rx = 120, ry = 100, zoom_img = 'bee'},
       {x = 0.8*W, y = 0.4*H, rx = 120, ry = 100, zoom_img = 'bee'},
       {x = 0.9*W, y = 0.4*H, rx = 120, ry = 100, zoom_img = 'bee', night_interactable = true},
       {x = 0.6*W, y = 0.4*H, rx = 40, ry = 40, switch = true},
+    ]]
+      {x = 826, y = 653, rx = 80, ry = 40, zoom_imgs = {'bee', 'intro_bg'}},
+      {x = 415, y = 352, rx = 45, ry = 45, zoom_img = 'bee', scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid'},
+      {x = 1022, y = 314, rx = 70, ry = 80, zoom_img = 'bee'},
     },
     [3] = {
       {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, zoom_img = 'bee'},
@@ -219,12 +224,10 @@ return function ()
       {x = 0.6*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 21, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
     },
     [5] = {
-      {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, zoom_img = 'bee', text = '不知道是什么'},
-      {x = 0.2*W, y = 0.4*H, rx = 30, ry = 120, zoom_img = 'bee', cont_scroll = H * 2, letter_initial = true},
-      {x = 0.1*W, y = 0.5*H, rx = 30, ry = 120, zoom_img = 'bee', cont_scroll = H * 2, letter_after = true},
-      -- {x = 0.3*W, y = 0.5*H, rx = 30, ry = 120, zoom_img = 'bee', text = '知道是什么', letter_after = true},
-      {x = 0.4*W, y = 0.6*H, rx = 80, ry = 80, zoom_img = 'bee', text = '不知道是什么', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee', letter_after = true},
-      {x = 0.5*W, y = 0.5*H, rx = 100, ry = 120, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 100, index = 1},
+      {x = 222, y = 222, rx = 60, ry = 40, zoom_img = 'bee', cont_scroll = H * 2, letter_initial = true},
+      {x = 999, y = 523, rx = 60, ry = 30, zoom_img = 'bee', cont_scroll = H * 2, letter_after = true},
+      {x = 825, y = 509, rx = 40, ry = 40, zoom_img = 'bee', text = '不知道是什么', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee', letter_after = true},
+      -- {x = 0.5*W, y = 0.5*H, rx = 100, ry = 120, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 100, index = 1},
     },
     [20] = {
       {x = 0.8*W, y = 0.5*H, rx = 30, ry = 30, zoom_img = 'bee'},
@@ -270,6 +273,7 @@ return function ()
   local mbox_counter = 0
 
   local tl = timeline_scroll()
+  -- XXX: Mark to ease testing
   -- tl.add_tick(album_ticks[5], 5)
   tl.add_tick(album_ticks[2], 2)
 
@@ -435,6 +439,10 @@ return function ()
     if best_obj ~= nil then
       local o = best_obj
       -- Activate object
+      if o.zoom_imgs then
+        o.index = (o.index or 0) % #o.zoom_imgs + 1
+        o.zoom_img = o.zoom_imgs[o.index]
+      end
       if o.zoom_img then
         -- Zoom-in; possibly unlocks new album scene
         -- Use the object contained in the sack, if the latter is open (unlocked)

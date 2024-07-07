@@ -149,10 +149,12 @@ function love.draw()
 end
 
 function love.keypressed(key)
+--[[
   if key == 'lshift' then
     if not isMobile and not isWeb then
       love.window.setFullscreen(not love.window.getFullscreen())
       updateLogicalDimensions()
     end
   end
+]]
 end
