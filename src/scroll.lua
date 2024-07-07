@@ -66,7 +66,7 @@ return function (options)
   end
 
   s.release = function (x, y)
-    if held and captured then
+    if held and captured and #history >= 1 then
       -- Calculate velocity
       local time, delta
       if #history < HISTORY_WINDOW then

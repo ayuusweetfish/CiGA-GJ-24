@@ -215,7 +215,7 @@ return function ()
       {x = 516, y = 367, rx = 60, ry = 40, zoom_img = 'obj_frames'},
       {x = 798, y = 664, rx = 30, ry = 25, zoom_img = 'obj_amber', unlock = 20, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'obj_amber'},
       {x = 859, y = 605, rx = 50, ry = 75, zoom_img = 'obj_fish_bone', unlock = 2, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'obj_fish_fin'},
-      {x = 864, y = 219, rx = 60, ry = 50, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1},
+      {x = 864, y = 219, rx = 60, ry = 50, scene_sprites = {nil, 'obj_lamp_3'}, sprite_w = nil, index = 1},
       {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_a'}, sprite_w = nil, index = 1, musical_box = 'orchid'},
       {x = 1140, y = 271, rx = 105, ry = 200, zoom_img = 'obj_bull'},
       {x = 973, y = 347, rx = 70, ry = 80, zoom_img = 'obj_journal_3'},
@@ -224,13 +224,13 @@ return function ()
     },
     [4] = {
       {x = 429, y = 522, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_b'}, sprite_w = nil, index = 1, musical_box = 'orchid_broken'},
-      {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = H * 3, letter_initial = true},
-      {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = H * 3, letter_after = true},
+      {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = 2000, letter_initial = true},
+      {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = 2000, letter_after = true},
       {x = 891, y = 642, rx = 30, ry = 30, zoom_img = 'obj_plastic'},
     },
     [5] = {
-      {x = 222, y = 222, rx = 60, ry = 40, zoom_img = 'letter_b', cont_scroll = H * 2, letter_initial = true},
-      {x = 999, y = 523, rx = 60, ry = 30, zoom_img = 'letter_b', cont_scroll = H * 2, letter_after = true},
+      {x = 222, y = 222, rx = 60, ry = 40, zoom_img = 'letter_b', cont_scroll = 1880, letter_initial = true},
+      {x = 999, y = 523, rx = 60, ry = 30, zoom_img = 'letter_b', cont_scroll = 1880, letter_after = true},
       {x = 828, y = 512, rx = 40, ry = 40, zoom_img = 'obj_beer', unlock = 1, unlock_seq = {'obj_beer_rotate', 'obj_beer', 'obj_beer_rotate'}, unlocked_img = 'obj_beer_rotate', letter_after = true},
     },
     [6] = {
@@ -711,29 +711,26 @@ return function ()
       if zoom_text == nil then
         x_target = W * 0.5
       end
-      if zoom_scroll ~= nil then
-        y_target = H * 0.5 + zoom_scroll.dx
-      end
       local scale = 0.5 + 0.5 * math.sqrt(math.sqrt(o_alpha))
+      local w, h = W * scale, H * scale
       local img = zoom_obj.zoom_img
       if zoom_obj.unlocked_img and album_idx == zoom_obj.unlock then
         img = zoom_obj.unlocked_img
       elseif zoom_obj.unlock_seq and zoom_seq_prog >= 10 then
         img = zoom_obj.unlock_seq[math.floor(zoom_seq_prog / UNLOCK_SEQ_PROG_RATE)]
       end
+      if zoom_scroll ~= nil then
+        local iw, ih = draw.get(img):getDimensions()
+        y_target = ih * 0.5 + zoom_scroll.dx
+        w, h = iw, ih
+      end
       local x_cen = x_target + (zoom_obj.x - x_target) * move_prog
       local y_cen = y_target + (zoom_obj.y - y_target) * move_prog
-      local scale_x, scale_y = scale, scale
       if zoom_obj.star_sack then
         local t = sack_key_match_time / 600
         local ampl = (1 - t) * math.exp(-t * 5) * 0.3
-        scale_x = scale * (1 + math.sin(t * 3 * (math.pi * 2)) * ampl * 0.25)
-        scale_y = scale * (1 + math.sin(t * 5 * (math.pi * 2)) * ampl)
-      end
-      local w, h = W * scale_x, H * scale_y
-      if zoom_obj.cont_scroll then
-        local iw, ih = draw.get(img):getDimensions()
-        h = w / iw * ih
+        w = w * (1 + math.sin(t * 3 * (math.pi * 2)) * ampl * 0.25)
+        h = h * (1 + math.sin(t * 5 * (math.pi * 2)) * ampl)
       end
       draw.img(img, x_cen, y_cen, w, h)
       -- Text
@@ -748,8 +745,8 @@ return function ()
           if b.active then
             local x_offs = b.x - W / 2
             local y_offs = b.y - H / 2
-            local rel_scale_x = scale_x / 0.6
-            local rel_scale_y = scale_y / 0.6
+            local rel_scale_x = w / W
+            local rel_scale_y = h / H
             x_offs = x_offs * rel_scale_x
             y_offs = y_offs * rel_scale_y
             local w, h = draw.get(b.img):getDimensions()
