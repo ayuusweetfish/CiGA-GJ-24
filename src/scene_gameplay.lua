@@ -168,7 +168,7 @@ return function ()
   local W, H = W, H
   local font = _G['global_font']
 
-  local album_ticks = {0, 0.25, 0.5, 0.75, 1, [20] = -100, [21] = 90, [22] = 100}
+  local album_ticks = {0, 0.25, 0.5, 0.75, 1, 1.5, [20] = -100, [21] = 90, [22] = 100}
   local album_backgrounds = {
     'background_1',
     'background_2',
@@ -201,24 +201,24 @@ return function ()
       {x = 877, y = 395, rx = 30, ry = 12, zoom_img = 'obj_insect', unlock = 3, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
       {x = 952, y = 275, rx = 60, ry = 70, zoom_img = 'bee'},
       {x = 858, y = 710, rx = 50, ry = 30, zoom_img = 'obj_chess'},
-      {x = 1034, y = 581, rx = 43, ry = 26, zoom_img = 'bee'},
+      {x = 1034, y = 581, rx = 43, ry = 26, zoom_img = 'obj_journal_1'},
     },
     [2] = {
       {x = 826, y = 653, rx = 80, ry = 40, zoom_imgs = {'bee', 'intro_bg'}},
       {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_a'}, sprite_w = nil, index = 1, musical_box = 'orchid'},
       {x = 1020, y = 314, rx = 70, ry = 80, zoom_img = 'bee'},
       {x = 1127, y = 217, rx = 45, ry = 60, switch = true},
-      {x = 435, y = 254, rx = 48, ry = 35, zoom_img = 'bee', night_interactable = true},
+      {x = 435, y = 254, rx = 48, ry = 35, zoom_img = 'obj_illust', night_interactable = true},
     },
     [3] = {
-      {x = 544, y = 210, rx = 250, ry = 110, zoom_img = 'bee'},
-      {x = 516, y = 367, rx = 60, ry = 40, zoom_img = 'bee'},
-      {x = 798, y = 664, rx = 30, ry = 25, zoom_img = 'obj_amber', unlock = 20, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
-      {x = 859, y = 605, rx = 50, ry = 75, zoom_img = 'bee', unlock = 2, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'obj_fish_fin'},
+      {x = 544, y = 210, rx = 250, ry = 110, zoom_img = 'obj_map'},
+      {x = 516, y = 367, rx = 60, ry = 40, zoom_img = 'obj_frames'},
+      {x = 798, y = 664, rx = 30, ry = 25, zoom_img = 'obj_amber', unlock = 20, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'obj_amber'},
+      {x = 859, y = 605, rx = 50, ry = 75, zoom_img = 'obj_fish_bone', unlock = 2, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'obj_fish_fin'},
       {x = 864, y = 219, rx = 60, ry = 50, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1},
       {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_a'}, sprite_w = nil, index = 1, musical_box = 'orchid'},
-      {x = 1140, y = 271, rx = 105, ry = 200, zoom_img = 'obj_dragon'},
-      {x = 973, y = 347, rx = 70, ry = 80, zoom_img = 'bee'},
+      {x = 1140, y = 271, rx = 105, ry = 200, zoom_img = 'obj_bull'},
+      {x = 973, y = 347, rx = 70, ry = 80, zoom_img = 'obj_journal_3'},
       {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'obj_sack', star_sack = true, child =
         {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'obj_bottle', unlock = 4, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'}},
     },
@@ -226,15 +226,17 @@ return function ()
       {x = 429, y = 522, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_b'}, sprite_w = nil, index = 1, musical_box = 'orchid_broken'},
       {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = H * 3, letter_initial = true},
       {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = H * 3, letter_after = true},
-      {x = 891, y = 642, rx = 30, ry = 30, zoom_img = 'obj_ball'},
+      {x = 891, y = 642, rx = 30, ry = 30, zoom_img = 'obj_plastic'},
     },
     [5] = {
-      {x = 222, y = 222, rx = 60, ry = 40, zoom_img = 'bee', cont_scroll = H * 2, letter_initial = true},
-      {x = 999, y = 523, rx = 60, ry = 30, zoom_img = 'bee', cont_scroll = H * 2, letter_after = true},
+      {x = 222, y = 222, rx = 60, ry = 40, zoom_img = 'letter_b', cont_scroll = H * 2, letter_initial = true},
+      {x = 999, y = 523, rx = 60, ry = 30, zoom_img = 'letter_b', cont_scroll = H * 2, letter_after = true},
       {x = 828, y = 512, rx = 40, ry = 40, zoom_img = 'obj_beer', unlock = 1, unlock_seq = {'obj_beer_rotate', 'obj_beer', 'obj_beer_rotate'}, unlocked_img = 'obj_beer_rotate', letter_after = true},
     },
+    [6] = {
+      {x = 631, y = 449, rx = 45, ry = 50, zoom_img = 'bee'},
+    },
     [20] = {
-      {x = 0.8*W, y = 0.5*H, rx = 30, ry = 30, zoom_img = 'bee'},
     },
     [21] = {
       {x = 0.2*W, y = 0.5*H, rx = 30, ry = 30, zoom_img = 'bee'},
@@ -278,13 +280,12 @@ return function ()
 
   local tl = timeline_scroll()
   -- XXX: Mark to ease testing
---[[
   tl.add_tick(album_ticks[1], 1)
   tl.add_tick(album_ticks[2], 2)
   tl.add_tick(album_ticks[3], 3)
   tl.add_tick(album_ticks[4], 4)
-]]
   tl.add_tick(album_ticks[5], 5)
+  tl.add_tick(album_ticks[6], 6)
 
   local tl_obj_unlock
 
@@ -635,12 +636,23 @@ return function ()
 
   s.draw = function ()
     love.graphics.clear(0.1, 0.1, 0.1)
-    love.graphics.setColor(1, 1, 1)
 
+    local bg_r, bg_g, bg_b, bg_a = 0, 0, 0, 0
     if album_idx == 4 then
+      bg_r, bg_g, bg_b, bg_a = 0.05, 0.05, 0.05, 1
+    elseif album_idx == 6 then
+      bg_r, bg_g, bg_b, bg_a = 0.95, 0.95, 0.95, 1
+    end
+    if bg_a > 0 then
+      love.graphics.setColor(bg_r, bg_g, bg_b, bg_a)
+      love.graphics.rectangle('fill', 0, 0, W, H)
+    end
+
+    love.graphics.setColor(1, 1, 1)
+    if album_idx == 4 or album_idx == 6 then
       for i = 1, 3 do
-        local dx = math.sin(0.5 + i * 1.22 + T * 0.01) * 10
-        local dy = math.sin(0.15 + i * 3.66 + T * 0.005) * 2
+        local dx = math.sin(0.5 + i * 1.22 + T * (0.01 + 0.001 * i)) * 10
+        local dy = math.sin(0.15 + i * 3.66 + T * (0.005 - 0.0006 * i)) * 2
         draw.img('grass_' .. i, W / 2 + dx, H / 2 + dy, W * 1.2, H * 1.2)
       end
     end
@@ -702,7 +714,7 @@ return function ()
       if zoom_scroll ~= nil then
         y_target = H * 0.5 + zoom_scroll.dx
       end
-      local scale = 0.3 + 0.3 * math.sqrt(math.sqrt(o_alpha))
+      local scale = 0.5 + 0.5 * math.sqrt(math.sqrt(o_alpha))
       local img = zoom_obj.zoom_img
       if zoom_obj.unlocked_img and album_idx == zoom_obj.unlock then
         img = zoom_obj.unlocked_img
@@ -723,7 +735,7 @@ return function ()
         local iw, ih = draw.get(img):getDimensions()
         h = w / iw * ih
       end
-      draw.img(img, x_cen, y_cen, iw, ih)
+      draw.img(img, x_cen, y_cen, w, h)
       -- Text
       if zoom_text then
         draw.shadow(0.9, 0.9, 0.9, o_alpha, zoom_text, W * 0.67, H * 0.5)
