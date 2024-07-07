@@ -168,7 +168,7 @@ return function ()
   local W, H = W, H
   local font = _G['global_font']
 
-  local album_ticks = {0, 0.25, 0.5, 0.75, 1, [20] = -100, [21] = 90}
+  local album_ticks = {0, 0.25, 0.5, 0.75, 1, [20] = -100, [21] = 90, [22] = 100}
   local album_backgrounds = {
     'background_1',
     'background_2',
@@ -178,6 +178,7 @@ return function ()
     'background_6',
     [20] = 'intro_bg',
     [21] = 'intro_bg',
+    [22] = 'intro_bg',
   }
   local album_backgrounds_alter = {
     [2] = 'background_2_off',
@@ -197,7 +198,7 @@ return function ()
 
   local objs_in_album = {
     [1] = {
-      {x = 877, y = 395, rx = 30, ry = 12, zoom_img = 'bee', unlock = 3, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
+      {x = 877, y = 395, rx = 30, ry = 12, zoom_img = 'obj_insect', unlock = 3, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
       {x = 952, y = 275, rx = 60, ry = 70, zoom_img = 'bee'},
       {x = 858, y = 710, rx = 50, ry = 30, zoom_img = 'bee'},
       {x = 1034, y = 581, rx = 43, ry = 26, zoom_img = 'bee'},
@@ -210,17 +211,16 @@ return function ()
       {x = 435, y = 254, rx = 48, ry = 35, zoom_img = 'bee', night_interactable = true},
     },
     [3] = {
-      -- {x = 559, y = 236, rx = 250, ry = 125, zoom_img = 'bee'},
       {x = 544, y = 210, rx = 250, ry = 110, zoom_img = 'bee'},
       {x = 516, y = 367, rx = 60, ry = 40, zoom_img = 'bee'},
-      {x = 798, y = 664, rx = 30, ry = 25, zoom_img = 'bee', unlock = 20, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
+      {x = 798, y = 664, rx = 30, ry = 25, zoom_img = 'obj_amber', unlock = 20, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
       {x = 859, y = 605, rx = 50, ry = 75, zoom_img = 'bee', unlock = 2, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
       {x = 864, y = 219, rx = 60, ry = 50, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1},
       {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid'},
-      {x = 1140, y = 271, rx = 105, ry = 200, zoom_img = 'bee'},
+      {x = 1140, y = 271, rx = 105, ry = 200, zoom_img = 'obj_dragon'},
       {x = 973, y = 347, rx = 70, ry = 80, zoom_img = 'bee'},
-      {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'bee', star_sack = true, child =
-        {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'bee', unlock = 4, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'}},
+      {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'obj_sack', star_sack = true, child =
+        {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'obj_bottle', unlock = 4, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'}},
     },
     [4] = {
       {x = 429, y = 522, rx = 45, ry = 45, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid_broken'},
@@ -229,7 +229,7 @@ return function ()
     [5] = {
       {x = 222, y = 222, rx = 60, ry = 40, zoom_img = 'bee', cont_scroll = H * 2, letter_initial = true},
       {x = 999, y = 523, rx = 60, ry = 30, zoom_img = 'bee', cont_scroll = H * 2, letter_after = true},
-      {x = 828, y = 512, rx = 40, ry = 40, zoom_img = 'bee', text = '不知道是什么', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee', letter_after = true},
+      {x = 828, y = 512, rx = 40, ry = 40, zoom_img = 'obj_beer', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee', letter_after = true},
     },
     [20] = {
       {x = 0.8*W, y = 0.5*H, rx = 30, ry = 30, zoom_img = 'bee'},
@@ -277,9 +277,9 @@ return function ()
   local tl = timeline_scroll()
   -- XXX: Mark to ease testing
   tl.add_tick(album_ticks[1], 1)
-  -- tl.add_tick(album_ticks[2], 2)
-  -- tl.add_tick(album_ticks[3], 3)
-  -- tl.add_tick(album_ticks[4], 4)
+  tl.add_tick(album_ticks[2], 2)
+  tl.add_tick(album_ticks[3], 3)
+  tl.add_tick(album_ticks[4], 4)
   tl.add_tick(album_ticks[5], 5)
 
   local tl_obj_unlock
@@ -698,7 +698,7 @@ return function ()
         scale_x = scale * (1 + math.sin(t * 3 * (math.pi * 2)) * ampl * 0.25)
         scale_y = scale * (1 + math.sin(t * 5 * (math.pi * 2)) * ampl)
       end
-      draw.img(img, x_cen, y_cen, H * scale_x, H * scale_y)
+      draw.img(img, x_cen, y_cen, W * scale_x, H * scale_y)
       -- Text
       if zoom_text then
         draw.shadow(0.9, 0.9, 0.9, o_alpha, zoom_text, W * 0.67, H * 0.5)
