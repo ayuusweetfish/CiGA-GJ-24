@@ -13,7 +13,7 @@ love.window.setMode(
 local globalScale, Wx, Hx, offsX, offsY
 
 local updateLogicalDimensions = function ()
-  love.window.setTitle('Game')
+  love.window.setTitle('Wrinkle')
   local wDev, hDev = love.graphics.getDimensions()
   globalScale = math.min(wDev / W, hDev / H)
   Wx = wDev / globalScale
