@@ -143,6 +143,13 @@ local bgm_cat, bgm_cat_update = audio.loop(
 )
 bgm_cat:setVolume(1)
 
+local bgm_cat_rain, bgm_cat_rain_update = audio.loop(
+  nil, 0,
+  'aud/background_cat_rain.ogg', (28 * 4) / (60 / 68),
+  1600 * 4
+)
+bgm_cat_rain:setVolume(0)
+
 local since_bgm_update = 0
 local bgm_update_all = function ()
   since_bgm_update = since_bgm_update + 1
@@ -150,6 +157,7 @@ local bgm_update_all = function ()
     since_bgm_update = 0
     bgm_light_update()
     bgm_cat_update()
+    bgm_cat_rain_update()
   end
 end
 
