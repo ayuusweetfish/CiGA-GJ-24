@@ -206,9 +206,9 @@ return function ()
       {x = 1034, y = 581, rx = 43, ry = 26, zoom_img = 'obj_journal_1'},
     },
     [2] = {
-      {x = 826, y = 653, rx = 80, ry = 40, zoom_imgs = {'bee', 'intro_bg'}},
+      {x = 826, y = 653, rx = 80, ry = 40, zoom_imgs = {'obj_star_1', 'obj_star_2', 'obj_star_3', 'obj_star_4'}},
       {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_a'}, sprite_w = nil, index = 1, musical_box = 'orchid'},
-      {x = 1020, y = 314, rx = 70, ry = 80, zoom_img = 'bee'},
+      {x = 1020, y = 314, rx = 70, ry = 80, zoom_img = 'obj_journal_2'},
       {x = 1127, y = 217, rx = 45, ry = 60, switch = true},
       {x = 435, y = 254, rx = 48, ry = 35, zoom_img = 'obj_illust', night_interactable = true},
     },
@@ -226,7 +226,7 @@ return function ()
     },
     [4] = {
       {x = 429, y = 522, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_b'}, sprite_w = nil, index = 1, musical_box = 'orchid_broken'},
-      {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = 2000, letter_initial = true},
+      {x = 889, y = 609, rx = 80, ry = 50, zoom_img = 'letter_a', cont_scroll = 2000, letter_initial = true},
       {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = 2000, letter_after = true},
       {x = 891, y = 642, rx = 30, ry = 30, zoom_img = 'obj_plastic', unlock = 21, unlock_seq = {'bee'}, unlocked_img = 'obj_plastic', letter_after = true},
     },
@@ -236,7 +236,7 @@ return function ()
       {x = 828, y = 512, rx = 40, ry = 40, zoom_img = 'obj_beer', unlock = 1, unlock_seq = {'obj_beer_rotate', 'obj_beer', 'obj_beer_rotate'}, unlocked_img = 'obj_beer_rotate', letter_after = true},
     },
     [6] = {
-      {x = 631, y = 449, rx = 45, ry = 50, zoom_img = 'bee'},
+      {x = 631, y = 449, rx = 45, ry = 50, zoom_img = 'obj_journal_6'},
     },
     [20] = {
     },
@@ -654,7 +654,7 @@ return function ()
     local bg_r, bg_g, bg_b, bg_a = 0, 0, 0, 0
     if album_idx == 4 then
       bg_r, bg_g, bg_b, bg_a = 0.05, 0.05, 0.05, 1
-    elseif album_idx == 6 then
+    elseif album_idx == 5 or album_idx == 6 then
       bg_r, bg_g, bg_b, bg_a = 0.95, 0.95, 0.95, 1
     end
     if bg_a > 0 then
@@ -663,10 +663,12 @@ return function ()
     end
 
     love.graphics.setColor(1, 1, 1)
-    if album_idx == 4 or album_idx == 6 then
+    if album_idx == 4 or album_idx == 5 or album_idx == 6 then
+      local ampl = (album_idx == 4 and 1 or 0.4)
+      local freq = (album_idx == 4 and 1 or 0.3)
       for i = 1, 3 do
-        local dx = math.sin(0.5 + i * 1.22 + T * (0.01 + 0.001 * i)) * 10
-        local dy = math.sin(0.15 + i * 3.66 + T * (0.005 - 0.0006 * i)) * 2
+        local dx = math.sin(0.5 + album_idx + i * (1.22 + album_idx) + T * (0.01 + 0.001 * freq * i)) * 10 * ampl
+        local dy = math.sin(0.15 + album_idx * 1.77 + i * (3.66 - album_idx) + T * (0.005 - 0.0006 * freq * i)) * 2 * ampl
         draw.img('grass_' .. i, W / 2 + dx, H / 2 + dy, W * 1.2, H * 1.2)
       end
     end
@@ -686,6 +688,16 @@ return function ()
       local seq = {'overlay_2_fire_1', 'overlay_2_fire_2'}
       local seq_idx = math.floor(T / 100) % #seq + 1
       draw.img(seq[seq_idx], W / 2, H / 2, W, H)
+    end
+
+    -- Lightnings
+    if album_idx == 4 then
+      local lightning = false
+      if s4_seq_time >= 0 then lightning = true
+      else lightning = (T % 2400 < 80) end
+      if lightning then
+        draw.img('lightning', W / 2, H / 2, W, H)
+      end
     end
 
     -- In-scene objects
