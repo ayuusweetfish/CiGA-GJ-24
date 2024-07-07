@@ -2,6 +2,8 @@ local draw = require 'draw_utils'
 local audio = require 'audio'
 local scroll = require 'scroll'
 
+local debug = false
+
 local timeline_scroll = function ()
   local s = {}
 
@@ -253,6 +255,7 @@ return function ()
     [20] = {
     },
     [21] = {
+      {x = 680, y = 620, rx = 50, ry = 35, zoom_img = 'obj_star', unlock = 6, unlock_seq = {'obj_star', 'obj_star'}, unlocked_img = 'obj_star'},
     },
   }
   local album_idx = 5
@@ -313,18 +316,16 @@ return function ()
 
   local tl = timeline_scroll()
   -- XXX: Mark to ease testing
-if false then
-  tl.add_tick(album_ticks[1], 1)
-  tl.add_tick(album_ticks[2], 2)
-  tl.add_tick(album_ticks[3], 3)
-  tl.add_tick(album_ticks[4], 4)
-end
+  if debug then
+    tl.add_tick(album_ticks[1], 1)
+    tl.add_tick(album_ticks[2], 2)
+    tl.add_tick(album_ticks[3], 3)
+    tl.add_tick(album_ticks[4], 4)
+    tl.add_tick(album_ticks[6], 6)
+    tl.add_tick(album_ticks[20], 20)
+    tl.add_tick(album_ticks[21], 21)
+  end
   tl.add_tick(album_ticks[5], 5)
---[[
-  tl.add_tick(album_ticks[6], 6)
-  tl.add_tick(album_ticks[20], 20)
-  tl.add_tick(album_ticks[21], 21)
-]]
 
   local tl_obj_unlock
 
@@ -764,13 +765,13 @@ end
         end
       end
     end
-  --[[
-    love.graphics.setColor(1, 0.8, 0.7, 0.3)
-    for i = 1, #objs do
-      local o = objs[i]
-      love.graphics.ellipse('fill', o.x, o.y, o.rx, o.ry)
+    if debug then
+      love.graphics.setColor(1, 0.8, 0.7, 0.3)
+      for i = 1, #objs do
+        local o = objs[i]
+        love.graphics.ellipse('fill', o.x, o.y, o.rx, o.ry)
+      end
     end
-  ]]
 
     -- Zoom-in
     if zoom_obj ~= nil then
