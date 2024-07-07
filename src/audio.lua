@@ -70,14 +70,14 @@ end
 local loop = function (introPath, introLen, loopPath, loopLen, bufSize)
   bufSize = bufSize or 1024
 
-  local decIntro = love.sound.newDecoder(introPath, bufSize)
   local decLoop = love.sound.newDecoder(loopPath, bufSize)
   local sr = decLoop:getSampleRate()
   local ch = decLoop:getChannelCount()
   local bd = decLoop:getBitDepth()
 
+  local decIntro
   if introPath ~= nil then
-    love.sound.newDecoder(introPath, bufSize)
+    decIntro = love.sound.newDecoder(introPath, bufSize)
     if sr ~= decIntro:getSampleRate() then error('Sample rates mismatch') end
     if ch ~= decIntro:getChannelCount() then error('Channel count mismatch') end
     if bd ~= decIntro:getBitDepth() then error('Bit depth mismatch') end

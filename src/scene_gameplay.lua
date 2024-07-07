@@ -134,7 +134,14 @@ local bgm_light, bgm_light_update = audio.loop(
   'aud/background_light_loop.ogg', (24 * 4) * (60 / 70),
   1600 * 4
 )
-bgm_light:setVolume(1)
+bgm_light:setVolume(0)
+
+local bgm_cat, bgm_cat_update = audio.loop(
+  nil, 0,
+  'aud/background_cat.ogg', (28 * 4) / (60 / 68),
+  1600 * 4
+)
+bgm_cat:setVolume(1)
 
 local since_bgm_update = 0
 local bgm_update_all = function ()
@@ -142,6 +149,7 @@ local bgm_update_all = function ()
   if since_bgm_update >= 120 then
     since_bgm_update = 0
     bgm_light_update()
+    bgm_cat_update()
   end
 end
 
