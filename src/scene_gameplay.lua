@@ -191,6 +191,7 @@ return function ()
     bgm_cat_rain,
     bgm_cat,
     bgm_cat,
+    [20] = bgm_light,
   }
   local bg_tracks_all = {bgm_light, bgm_cat, bgm_cat_rain}
 
@@ -264,6 +265,9 @@ return function ()
 
   local sack_btn = nil
   local sack_key_match_time = -1
+
+  local mbox_playing = false
+  local mbox_counter = 0
 
   local tl = timeline_scroll()
   -- tl.add_tick(album_ticks[5], 5)
@@ -467,8 +471,11 @@ return function ()
           -- Music!
           if o.index == 2 then
             audio.sfx(o.musical_box, nil, o.musical_box == 'orchid')
+            audio.sfx_vol(o.musical_box, 0) -- Will be updated at draw
+            mbox_playing = true
           else
             audio.sfx_stop(o.musical_box)
+            mbox_playing = false
           end
         end
       elseif o.switch then
@@ -553,6 +560,12 @@ return function ()
         sack_key_match_time = -1
         zoom_in_time, zoom_out_time = -1, 0
       end
+    end
+
+    if mbox_playing then
+      mbox_counter = math.min(mbox_counter + 1, 180)
+    else
+      mbox_counter = math.max(mbox_counter - 1, 0)
     end
 
     -- Special case: entering album scenes 1 and 4
@@ -713,7 +726,7 @@ return function ()
       blur_alpha = (tl.blur_disp - 0.2) / 0.8
       blur_alpha = blur_alpha^(1/3)
     end
-    local audio_bg_blur = blur_alpha
+    local audio_bg_vol = 1 - blur_alpha
     if s1_seq_time >= 0 then
       blur_alpha = 1
     end
@@ -721,9 +734,9 @@ return function ()
       blur_alpha = 1
       if s4_seq_time >= 440 and s4_seq_time < 520 then blur_alpha = 0 end
       if s4_seq_time >= 600 then
-        audio_bg_blur = math.max(0, 1 - (s4_seq_time - 600) / 240)
+        audio_bg_vol = math.min(1, (s4_seq_time - 600) / 240)
       else
-        audio_bg_blur = 1
+        audio_bg_vol = 0
       end
     end
     if blur_alpha > 0 then
@@ -734,15 +747,18 @@ return function ()
     -- In-scene
     for i = 1, #objs do
       local o = objs[i]
-      if o.musical_box then
-        audio.sfx_vol(o.musical_box, 1 - blur_alpha)
+      if o.musical_box and o.index == 2 then
+        audio.sfx_vol(o.musical_box, (1 - blur_alpha) * 0.25)
       end
     end
     -- Background tracks
+    if album_idx == 3 then
+      audio_bg_vol = audio_bg_vol * (1 - mbox_counter / 180) ^ 2
+    end
     local bg_track = bg_tracks[album_idx]
     for i = 1, #bg_tracks_all do bg_tracks_all[i]:setVolume(0) end
     if bg_track then
-      bg_track:setVolume(1 - audio_bg_blur)
+      bg_track:setVolume(audio_bg_vol)
     end
 
     -- Timeline
