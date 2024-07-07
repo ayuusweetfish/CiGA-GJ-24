@@ -47,7 +47,7 @@ local fontSizeFactory = function (path, preload)
     return font[size]
   end
 end
-_G['global_font'] = fontSizeFactory('fnt/AaFendudu_subset.ttf', {28, 36})
+_G['global_font'] = fontSizeFactory('fnt/BorelRegular_subset.ttf', {28, 36})
 love.graphics.setFont(_G['global_font'](40))
 
 _G['scene_intro'] = require 'scene_intro'
@@ -149,12 +149,10 @@ function love.draw()
 end
 
 function love.keypressed(key)
---[[
   if key == 'lshift' then
     if not isMobile and not isWeb then
       love.window.setFullscreen(not love.window.getFullscreen())
       updateLogicalDimensions()
     end
   end
-]]
 end

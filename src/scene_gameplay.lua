@@ -170,15 +170,18 @@ return function ()
 
   local album_ticks = {0, 0.25, 0.5, 0.75, 1, 1.75, [20] = -100, [21] = 90, [22] = 100}
   local album_dates = {
-    '1990.03',
-    '1990.08',
-    '1991.10',
-    '1992.06',
-    '1994.04',
+    '1997.03',
+    '1997.08',
+    '1998.09',
+    '1999.07',
+    '2000.04',
     '2015.03',
     [20] = '400000 BCE',
-    [21] = '13578246 AD',
+    [21] = '13578246 CE',
   }
+  for k, v in pairs(album_dates) do
+    album_dates[k] = love.graphics.newText(font(28), tostring(v))
+  end
   local album_backgrounds = {
     'background_1',
     'background_2',
@@ -242,7 +245,7 @@ return function ()
     [5] = {
       {x = 810, y = 510, rx = 42, ry = 52, zoom_img = 'letter_b', cont_scroll = 1880, letter_initial = true},
       {x = 999, y = 523, rx = 60, ry = 30, zoom_img = 'letter_b', cont_scroll = 1880, letter_after = true},
-      {x = 828, y = 512, rx = 40, ry = 40, zoom_img = 'obj_beer', unlock = 1, unlock_seq = {'obj_beer_rotate', 'obj_beer', 'obj_beer_rotate'}, unlocked_img = 'obj_beer_rotate', letter_after = true},
+      {x = 828, y = 512, rx = 40, ry = 40, zoom_img = 'obj_beer', unlock = 1, unlock_seq = {'obj_beer_anim1', 'obj_beer_anim2', 'obj_beer_anim3', 'obj_beer_anim4', 'obj_beer_anim5', 'obj_beer_anim6'}, unlocked_img = 'obj_beer_anim6', letter_after = true},
     },
     [6] = {
       {x = 631, y = 449, rx = 45, ry = 50, zoom_img = 'obj_journal_6'},
@@ -310,12 +313,12 @@ return function ()
 
   local tl = timeline_scroll()
   -- XXX: Mark to ease testing
---[[
+if false then
   tl.add_tick(album_ticks[1], 1)
   tl.add_tick(album_ticks[2], 2)
   tl.add_tick(album_ticks[3], 3)
   tl.add_tick(album_ticks[4], 4)
-]]
+end
   tl.add_tick(album_ticks[5], 5)
 --[[
   tl.add_tick(album_ticks[6], 6)
@@ -937,13 +940,28 @@ return function ()
       local x = W * 0.92
       love.graphics.line(x, y(timeline_min), x, y(timeline_max))
       for i = 1, #tl0.ticks do
-        if tl0.tags[i] > 0 then
-          love.graphics.circle('fill', x, y(tl0.ticks[i]), 12)
-        end
+        love.graphics.circle('fill', x, y(tl0.ticks[i]), 12)
       end
+      local tl0_ticks = {}
+      for i = 1, #tl0.ticks do
+        tl0_ticks[tl0.ticks[i]] = true
+        draw(album_dates[tl0.tags[i]], x - W * 0.02, y(tl0.ticks[i]), nil, nil, 1, 0.3)
+      end
+      for i = 1, #tl.ticks do if not tl0_ticks[tl.ticks[i]] then
+        local dist = math.min(1, math.abs(tl.dx - i))
+        local a = math.max(0, 1 - dist * 2)
+        love.graphics.setColor(1, 1, 1, 0.4 * tl_alpha * a)
+        draw(album_dates[tl.tags[i]], x - W * 0.02, y(tl.ticks[i]), nil, nil, 1, 0.3)
+      end end
       love.graphics.setColor(1, 1, 1, tl_alpha)
       love.graphics.circle('fill', x, y(tl.dx_disp), 20)
     end
+
+    love.graphics.setColor(0.1, 0.1, 0.1)
+    love.graphics.rectangle('fill', 0, -H, W, H)
+    love.graphics.rectangle('fill', 0, H, W, H)
+    love.graphics.rectangle('fill', -W, 0, W, H)
+    love.graphics.rectangle('fill', W, 0, W, H)
   end
 
   s.wheel = function (x, y)
