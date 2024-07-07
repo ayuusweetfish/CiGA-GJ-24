@@ -275,8 +275,9 @@ return function ()
   local sack_btn = nil
   local sack_key_match_time = -1
 
-  local mbox_playing = false
+  local mbox_playing = nil
   local mbox_counter = 0
+  local mbox_counter_limitless = 0
 
   local tl = timeline_scroll()
   -- XXX: Mark to ease testing
@@ -490,10 +491,10 @@ return function ()
           if o.index == 2 then
             audio.sfx(o.musical_box, nil, o.musical_box == 'orchid')
             audio.sfx_vol(o.musical_box, 0) -- Will be updated at draw
-            mbox_playing = true
+            mbox_playing = o
           else
             audio.sfx_stop(o.musical_box)
-            mbox_playing = false
+            mbox_playing = nil
           end
         end
       elseif o.switch then
@@ -515,6 +516,7 @@ return function ()
     bgm_update_all()
 
     T = T + 1
+    if T % 240 == 0 then print(T) end
 
     if zoom_in_time >= 0 then zoom_in_time = zoom_in_time + 1
     elseif zoom_out_time >= 0 then
@@ -562,6 +564,7 @@ return function ()
           o.index = 1   -- Turn off
         end
       end
+      mbox_playing = nil
       -- Update objects
       objs = objs_in_album[album_idx]
     end
@@ -587,8 +590,15 @@ return function ()
 
     if mbox_playing then
       mbox_counter = math.min(mbox_counter + 1, 180)
+      mbox_counter_limitless = mbox_counter_limitless + 1
+      if mbox_playing.musical_box == 'orchid_broken' and mbox_counter_limitless > 650 then
+        mbox_playing.index = 1
+        audio.sfx_stop(mbox_playing.musical_box)
+        mbox_playing = nil
+      end
     else
       mbox_counter = math.max(mbox_counter - 1, 0)
+      mbox_counter_limitless = 0
     end
 
     -- Special case: entering album scenes 1 and 4
@@ -677,7 +687,19 @@ return function ()
     for i = 1, #objs do
       local o = objs[i]
       if o.scene_sprites then
-        local image = o.scene_sprites[o.index]
+        local index = o.index
+        -- Special case: broken musical box
+        if o.musical_box == 'orchid_broken' and index == 2 then
+          if mbox_counter_limitless >= 240 and mbox_counter_limitless <= 360 then
+            index = math.floor(mbox_counter_limitless / 35) % 2 + 1
+          elseif
+            (mbox_counter_limitless > 360 and mbox_counter_limitless < 530) or
+            (mbox_counter_limitless > 650)
+          then
+            index = 1
+          end
+        end
+        local image = o.scene_sprites[index]
         if image then
           if o.sprite_w then
             draw.img(image, o.x, o.y, o.sprite_w)

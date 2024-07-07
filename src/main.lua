@@ -97,7 +97,7 @@ local timeStep = 1 / 240
 function love.update(dt)
   T = T + dt
   local count = 0
-  while T > timeStep and count < 4 do
+  while T > timeStep and count < 12 do
     T = T - timeStep
     count = count + 1
     if lastScene ~= nil then
