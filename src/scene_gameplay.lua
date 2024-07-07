@@ -197,8 +197,10 @@ return function ()
 
   local objs_in_album = {
     [1] = {
-      {x = 0.4*W, y = 0.7*H, rx = 100, ry = 120, zoom_img = 'bee'},
-      {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 3, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
+      {x = 877, y = 395, rx = 30, ry = 12, zoom_img = 'bee', unlock = 3, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
+      {x = 952, y = 275, rx = 60, ry = 70, zoom_img = 'bee'},
+      {x = 858, y = 710, rx = 50, ry = 30, zoom_img = 'bee'},
+      {x = 1034, y = 581, rx = 43, ry = 26, zoom_img = 'bee'},
     },
     [2] = {
       {x = 826, y = 653, rx = 80, ry = 40, zoom_imgs = {'bee', 'intro_bg'}},
@@ -227,8 +229,7 @@ return function ()
     [5] = {
       {x = 222, y = 222, rx = 60, ry = 40, zoom_img = 'bee', cont_scroll = H * 2, letter_initial = true},
       {x = 999, y = 523, rx = 60, ry = 30, zoom_img = 'bee', cont_scroll = H * 2, letter_after = true},
-      {x = 825, y = 509, rx = 40, ry = 40, zoom_img = 'bee', text = '不知道是什么', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee', letter_after = true},
-      -- {x = 0.5*W, y = 0.5*H, rx = 100, ry = 120, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 100, index = 1},
+      {x = 828, y = 512, rx = 40, ry = 40, zoom_img = 'bee', text = '不知道是什么', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee', letter_after = true},
     },
     [20] = {
       {x = 0.8*W, y = 0.5*H, rx = 30, ry = 30, zoom_img = 'bee'},
@@ -277,9 +278,9 @@ return function ()
   -- XXX: Mark to ease testing
   tl.add_tick(album_ticks[1], 1)
   -- tl.add_tick(album_ticks[2], 2)
-  tl.add_tick(album_ticks[3], 3)
+  -- tl.add_tick(album_ticks[3], 3)
   -- tl.add_tick(album_ticks[4], 4)
-  -- tl.add_tick(album_ticks[5], 5)
+  tl.add_tick(album_ticks[5], 5)
 
   local tl_obj_unlock
 
