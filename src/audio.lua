@@ -6,7 +6,7 @@ local function load_audio(path)
     local basename = files[i]
     if basename:sub(-4) == '.ogg' then
       local name = (path .. '/' .. basename:sub(1, #basename - 4)):sub(2)
-      if name ~= 'background' then
+      if name:sub(1, 10) ~= 'background' then
         local img = love.audio.newSource('aud' .. path .. '/' .. basename, 'static')
         sources[name] = img
         print(name)
@@ -70,12 +70,12 @@ end
 local loop = function (introPath, introLen, loopPath, loopLen, bufSize)
   bufSize = bufSize or 1024
 
+  local decIntro = love.sound.newDecoder(introPath, bufSize)
   local decLoop = love.sound.newDecoder(loopPath, bufSize)
   local sr = decLoop:getSampleRate()
   local ch = decLoop:getChannelCount()
   local bd = decLoop:getBitDepth()
 
-  local decIntro
   if introPath ~= nil then
     love.sound.newDecoder(introPath, bufSize)
     if sr ~= decIntro:getSampleRate() then error('Sample rates mismatch') end

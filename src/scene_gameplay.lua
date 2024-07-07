@@ -129,6 +129,22 @@ local timeline_scroll = function ()
   return s
 end
 
+local bgm_light, bgm_light_update = audio.loop(
+  'aud/background_light_intro.ogg', (2 * 4) * (60 / 70),
+  'aud/background_light_loop.ogg', (24 * 4) * (60 / 70),
+  1600 * 4
+)
+bgm_light:setVolume(1)
+
+local since_bgm_update = 0
+local bgm_update_all = function ()
+  since_bgm_update = since_bgm_update + 1
+  if since_bgm_update >= 120 then
+    since_bgm_update = 0
+    bgm_light_update()
+  end
+end
+
 return function ()
   local s = {}
   local W, H = W, H
@@ -143,7 +159,7 @@ return function ()
   local album_backgrounds_alter = {
     [2] = 'bee',
     [4] = 'bee',
-    [5] = 'bee',
+    [5] = 'intro_bg',
   }
 
   local objs_in_album = {
@@ -218,8 +234,8 @@ return function ()
   local sack_key_match_time = -1
 
   local tl = timeline_scroll()
-  -- tl.add_tick(album_ticks[5], 5)
-  tl.add_tick(album_ticks[1], 1)
+  tl.add_tick(album_ticks[5], 5)
+  -- tl.add_tick(album_ticks[1], 1)
 
   local tl_obj_unlock
 
@@ -433,6 +449,8 @@ return function ()
   end
 
   s.update = function ()
+    bgm_update_all()
+
     if zoom_in_time >= 0 then zoom_in_time = zoom_in_time + 1
     elseif zoom_out_time >= 0 then
       zoom_out_time = zoom_out_time + 1
