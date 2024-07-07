@@ -180,7 +180,7 @@ return function ()
     [21] = 'intro_bg',
   }
   local album_backgrounds_alter = {
-    [2] = 'intro_bg',
+    [2] = 'background_2_off',
     [4] = 'background_4',
     [5] = 'background_5',
   }
@@ -208,8 +208,9 @@ return function ()
       {x = 0.6*W, y = 0.4*H, rx = 40, ry = 40, switch = true},
     ]]
       {x = 826, y = 653, rx = 80, ry = 40, zoom_imgs = {'bee', 'intro_bg'}},
-      {x = 415, y = 352, rx = 45, ry = 45, zoom_img = 'bee', scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid'},
-      {x = 1022, y = 314, rx = 70, ry = 80, zoom_img = 'bee'},
+      {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid'},
+      {x = 1020, y = 314, rx = 70, ry = 80, zoom_img = 'bee'},
+      {x = 1127, y = 217, rx = 45, ry = 60, switch = true},
     },
     [3] = {
       {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, zoom_img = 'bee'},
@@ -499,8 +500,12 @@ return function ()
     px, py = x, y
   end
 
+  local T = 0
+
   s.update = function ()
     bgm_update_all()
+
+    T = T + 1
 
     if zoom_in_time >= 0 then zoom_in_time = zoom_in_time + 1
     elseif zoom_out_time >= 0 then
@@ -630,6 +635,13 @@ return function ()
       background = album_backgrounds_alter[album_idx]
     end
     draw.img(background, W / 2, H / 2, W, H)
+
+    -- Moving lights
+    if album_idx == 2 and not light_on then
+      local seq = {'overlay_2_fire_1', 'overlay_2_fire_2'}
+      local seq_idx = math.floor(T / 100) % #seq + 1
+      draw.img(seq[seq_idx], W / 2, H / 2, W, H)
+    end
 
     -- In-scene objects
     love.graphics.setColor(1, 1, 1)
@@ -761,7 +773,7 @@ return function ()
       end
     end
     -- Background tracks
-    if album_idx == 3 then
+    if album_idx == 2 then
       audio_bg_vol = audio_bg_vol * (1 - mbox_counter / 180) ^ 2
     end
     local bg_track = bg_tracks[album_idx]
