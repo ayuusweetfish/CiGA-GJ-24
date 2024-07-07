@@ -1,6 +1,6 @@
 # Wrinkle
 
-**[Jam 版试玩链接](https://0-th.art/wrinkle/)**（⚠️ 非完成版，见下↓）
+**[Jam 版试玩链接](https://play.ayu.land/wrinkle/)**（⚠️ 非完成版，见下↓）
 
 **🚧 (07.08) 持续施工中，参见 GitHub 页面更新与发布~**
 
