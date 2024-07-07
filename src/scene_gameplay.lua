@@ -218,9 +218,13 @@ return function ()
   local sack_key_match_time = -1
 
   local tl = timeline_scroll()
-  tl.add_tick(album_ticks[5], 5)
+  -- tl.add_tick(album_ticks[5], 5)
+  tl.add_tick(album_ticks[1], 1)
 
   local tl_obj_unlock
+
+  local tl_time = -1
+  local TIMELINE_STAY_DUR = 1200
 
   local s4_seq_time = -1
 
@@ -479,6 +483,13 @@ return function ()
       objs = objs_in_album[album_idx]
     end
 
+    if tl_time >= 0 then
+      tl_time = tl_time + 1
+      if tl_time >= TIMELINE_STAY_DUR then
+        tl_time = -1
+      end
+    end
+
     if zoom_scroll ~= nil then
       zoom_scroll.update()
     end
@@ -649,39 +660,49 @@ return function ()
     end
 
     -- Timeline
-    local timeline_min = tl0.ticks[1]
-    local timeline_max = tl0.ticks[#tl0.ticks]
-    if tl_obj_unlock then
-      timeline_min = math.min(timeline_min,
-        math.max(tl_obj_unlock.ticks[1], tl_obj_unlock.dx_disp))
-      timeline_max = math.max(timeline_max,
-        math.min(tl_obj_unlock.ticks[#tl_obj_unlock.ticks], tl_obj_unlock.dx_disp))
-    end
-    local scale = 0
-    if tl.dx_disp < -0.1 and timeline_min < 0 then
-      scale = -tl.dx_disp - 0.1
-      local w = (1 - math.exp(-(-tl.dx_disp - 0.1) * 0.1))
-      scale = scale * (1 - w * 0.01)
-    elseif tl.dx_disp > 1.1 and timeline_max > 1 then
-      scale = tl.dx_disp - 1.1
-      local w = (1 - math.exp(-(tl.dx_disp - 1.1) * 0.1))
-      scale = scale * (1 - w * 0.01)
-    end
-    local y = function (t)
-      local y = (t + scale) / (scale * 2 + 1)
-      return H * (0.15 + y * 0.7)
-    end
-    love.graphics.setColor(1, 1, 1, 0.4)
-    love.graphics.setLineWidth(4)
-    local x = W * 0.9
-    love.graphics.line(x, y(timeline_min), x, y(timeline_max))
-    for i = 1, #tl0.ticks do
-      if tl0.tags[i] > 0 then
-        love.graphics.circle('fill', x, y(tl0.ticks[i]), 12)
+    local tl_alpha = 0
+    if tl_time >= 0 then
+      if tl_time >= TIMELINE_STAY_DUR - 120 then
+        tl_alpha = (TIMELINE_STAY_DUR - tl_time) / 120
+      else
+        tl_alpha = math.min(1, tl_time / 120)
       end
     end
-    love.graphics.setColor(1, 1, 1)
-    love.graphics.circle('fill', x, y(tl.dx_disp), 20)
+    if tl_alpha > 0 then
+      local timeline_min = tl0.ticks[1]
+      local timeline_max = tl0.ticks[#tl0.ticks]
+      if tl_obj_unlock then
+        timeline_min = math.min(timeline_min,
+          math.max(tl_obj_unlock.ticks[1], tl_obj_unlock.dx_disp))
+        timeline_max = math.max(timeline_max,
+          math.min(tl_obj_unlock.ticks[#tl_obj_unlock.ticks], tl_obj_unlock.dx_disp))
+      end
+      local scale = 0
+      if tl.dx_disp < -0.1 and timeline_min < 0 then
+        scale = -tl.dx_disp - 0.1
+        local w = (1 - math.exp(-(-tl.dx_disp - 0.1) * 0.1))
+        scale = scale * (1 - w * 0.01)
+      elseif tl.dx_disp > 1.1 and timeline_max > 1 then
+        scale = tl.dx_disp - 1.1
+        local w = (1 - math.exp(-(tl.dx_disp - 1.1) * 0.1))
+        scale = scale * (1 - w * 0.01)
+      end
+      local y = function (t)
+        local y = (t + scale) / (scale * 2 + 1)
+        return H * (0.15 + y * 0.7)
+      end
+      love.graphics.setColor(1, 1, 1, 0.4 * tl_alpha)
+      love.graphics.setLineWidth(4)
+      local x = W * 0.92
+      love.graphics.line(x, y(timeline_min), x, y(timeline_max))
+      for i = 1, #tl0.ticks do
+        if tl0.tags[i] > 0 then
+          love.graphics.circle('fill', x, y(tl0.ticks[i]), 12)
+        end
+      end
+      love.graphics.setColor(1, 1, 1, tl_alpha)
+      love.graphics.circle('fill', x, y(tl.dx_disp), 20)
+    end
   end
 
   s.wheel = function (x, y)
@@ -690,21 +711,23 @@ return function ()
     if zoom_obj ~= nil then
       if zoom_in_time >= 120 then
         if tl_obj_unlock and zoom_obj.unlock ~= album_idx then
-          if zoom_seq_prog < #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE
-            and y * (album_ticks[zoom_obj.unlock] - album_ticks[album_idx]) > 0
-          then
-            zoom_seq_prog = math.min(
-              #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE,
-              zoom_seq_prog + math.abs(y))
-          else
-            tl_obj_unlock.push(y)
+          if y * (album_ticks[zoom_obj.unlock] - album_ticks[album_idx]) > 0 then
+            if zoom_seq_prog < #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE then
+              zoom_seq_prog = math.min(
+                #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE,
+                zoom_seq_prog + math.abs(y))
+            else
+              tl_obj_unlock.push(y)
+              tl_time = math.max(0, math.min(120, tl_time))
+            end
           end
         elseif zoom_scroll then
           zoom_scroll.impulse(y * 3)
         end
       end
-    else
+    elseif #tl.ticks > 1 then
       tl.push(y)
+      tl_time = math.max(0, math.min(120, tl_time))
     end
   end
 
