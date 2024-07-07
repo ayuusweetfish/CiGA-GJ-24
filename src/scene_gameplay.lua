@@ -168,7 +168,17 @@ return function ()
   local W, H = W, H
   local font = _G['global_font']
 
-  local album_ticks = {0, 0.25, 0.5, 0.75, 1, 1.5, [20] = -100, [21] = 90, [22] = 100}
+  local album_ticks = {0, 0.25, 0.5, 0.75, 1, 1.75, [20] = -100, [21] = 90, [22] = 100}
+  local album_dates = {
+    '1990.03',
+    '1990.08',
+    '1991.10',
+    '1992.06',
+    '1994.04',
+    '2015.03',
+    [20] = '400000 BCE',
+    [21] = '13578246 AD',
+  }
   local album_backgrounds = {
     'background_1',
     'background_2',
@@ -176,9 +186,8 @@ return function ()
     'background_4',
     'background_5',
     'background_6',
-    [20] = 'intro_bg',
-    [21] = 'intro_bg',
-    [22] = 'intro_bg',
+    [20] = 'background_20',
+    [21] = 'background_21',
   }
   local album_backgrounds_alter = {
     [2] = 'background_2_off',
@@ -200,8 +209,8 @@ return function ()
 
   local objs_in_album = {
     [1] = {
-      {x = 877, y = 395, rx = 30, ry = 12, zoom_img = 'obj_insect', unlock = 3, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'obj_chess'},
-      {x = 952, y = 275, rx = 60, ry = 70, zoom_img = 'bee'},
+      {x = 877, y = 395, rx = 30, ry = 12, zoom_img = 'obj_insect', unlock = 3, unlock_seq = {'obj_insect', 'obj_insect'}, unlocked_img = 'obj_chess'},
+      -- {x = 952, y = 275, rx = 60, ry = 70, zoom_img = 'bee'},
       {x = 858, y = 710, rx = 50, ry = 30, zoom_img = 'obj_go'},
       {x = 1034, y = 581, rx = 43, ry = 26, zoom_img = 'obj_journal_1'},
     },
@@ -215,20 +224,20 @@ return function ()
     [3] = {
       {x = 544, y = 210, rx = 250, ry = 110, zoom_img = 'obj_map'},
       {x = 516, y = 367, rx = 60, ry = 40, zoom_img = 'obj_frames'},
-      {x = 798, y = 664, rx = 30, ry = 25, zoom_img = 'obj_amber', unlock = 20, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'obj_amber'},
-      {x = 859, y = 605, rx = 50, ry = 75, zoom_img = 'obj_fish_bone', unlock = 2, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'obj_fish_fin'},
+      {x = 798, y = 664, rx = 30, ry = 25, zoom_img = 'obj_amber', unlock = 20, unlock_seq = {'obj_amber', 'obj_amber'}, unlocked_img = 'obj_amber'},
+      {x = 859, y = 605, rx = 50, ry = 75, zoom_img = 'obj_fish_bone', unlock = 2, unlock_seq = {'obj_fish_bone', 'obj_fish_bone'}, unlocked_img = 'obj_fish_fin'},
       {x = 864, y = 219, rx = 60, ry = 50, scene_sprites = {nil, 'obj_lamp_3'}, sprite_w = nil, index = 1},
       {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_a'}, sprite_w = nil, index = 1, musical_box = 'orchid'},
       {x = 1140, y = 271, rx = 105, ry = 200, zoom_img = 'obj_bull'},
       {x = 973, y = 347, rx = 70, ry = 80, zoom_img = 'obj_journal_3'},
       {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'obj_sack', star_sack = true, child =
-        {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'obj_bottle', unlock = 4, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'}},
+        {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'obj_bottle', unlock = 4, unlock_seq = {'obj_bottle', 'obj_bottle'}, unlocked_img = 'obj_bottle'}},
     },
     [4] = {
       {x = 429, y = 522, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_b'}, sprite_w = nil, index = 1, musical_box = 'orchid_broken'},
       {x = 889, y = 609, rx = 80, ry = 50, zoom_img = 'letter_a', cont_scroll = 2000, letter_initial = true},
       {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = 2000, letter_after = true},
-      {x = 891, y = 642, rx = 30, ry = 30, zoom_img = 'obj_plastic', unlock = 21, unlock_seq = {'bee'}, unlocked_img = 'obj_plastic', letter_after = true},
+      {x = 891, y = 642, rx = 30, ry = 30, zoom_img = 'obj_plastic', unlock = 21, unlock_seq = {'obj_plastic', 'obj_plastic'}, unlocked_img = 'obj_plastic', letter_after = true},
     },
     [5] = {
       {x = 810, y = 510, rx = 42, ry = 52, zoom_img = 'letter_b', cont_scroll = 1880, letter_initial = true},
@@ -241,7 +250,6 @@ return function ()
     [20] = {
     },
     [21] = {
-      {x = 0.2*W, y = 0.5*H, rx = 30, ry = 30, zoom_img = 'bee'},
     },
   }
   local album_idx = 5
@@ -302,12 +310,17 @@ return function ()
 
   local tl = timeline_scroll()
   -- XXX: Mark to ease testing
+--[[
   tl.add_tick(album_ticks[1], 1)
   tl.add_tick(album_ticks[2], 2)
   tl.add_tick(album_ticks[3], 3)
   tl.add_tick(album_ticks[4], 4)
+]]
   tl.add_tick(album_ticks[5], 5)
-  tl.add_tick(album_ticks[6], 6)
+  -- tl.add_tick(album_ticks[6], 6)
+
+  tl.add_tick(album_ticks[20], 20)
+  tl.add_tick(album_ticks[21], 21)
 
   local tl_obj_unlock
 
