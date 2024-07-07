@@ -170,7 +170,7 @@ return function ()
 
   local album_ticks = {0, 0.25, 0.5, 0.75, 1, [20] = -100, [21] = 90}
   local album_backgrounds = {
-    'background_6',
+    'background_1',
     'background_2',
     'background_3',
     'background_4',
@@ -201,28 +201,28 @@ return function ()
       {x = 0.4*W, y = 0.5*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 3, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
     },
     [2] = {
-    --[[
-      {x = 0.7*W, y = 0.4*H, rx = 120, ry = 100, zoom_img = 'bee'},
-      {x = 0.8*W, y = 0.4*H, rx = 120, ry = 100, zoom_img = 'bee'},
-      {x = 0.9*W, y = 0.4*H, rx = 120, ry = 100, zoom_img = 'bee', night_interactable = true},
-      {x = 0.6*W, y = 0.4*H, rx = 40, ry = 40, switch = true},
-    ]]
       {x = 826, y = 653, rx = 80, ry = 40, zoom_imgs = {'bee', 'intro_bg'}},
       {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid'},
       {x = 1020, y = 314, rx = 70, ry = 80, zoom_img = 'bee'},
       {x = 1127, y = 217, rx = 45, ry = 60, switch = true},
+      {x = 435, y = 254, rx = 48, ry = 35, zoom_img = 'bee', night_interactable = true},
     },
     [3] = {
-      {x = 0.5*W, y = 0.5*H, rx = 60, ry = 60, zoom_img = 'bee'},
-      {x = 0.2*W, y = 0.3*H, rx = 50, ry = 60, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid'},
-      {x = 0.5*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 20, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
-      {x = 0.3*W, y = 0.2*H, rx = 120, ry = 80, zoom_img = 'bee', star_sack = true, child =
-        {x = 0.3*W, y = 0.2*H, rx = 120, ry = 80, zoom_img = 'bee', unlock = 4, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'}},
+      -- {x = 559, y = 236, rx = 250, ry = 125, zoom_img = 'bee'},
+      {x = 544, y = 210, rx = 250, ry = 110, zoom_img = 'bee'},
+      {x = 516, y = 367, rx = 60, ry = 40, zoom_img = 'bee'},
+      {x = 798, y = 664, rx = 30, ry = 25, zoom_img = 'bee', unlock = 20, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
+      {x = 859, y = 605, rx = 50, ry = 75, zoom_img = 'bee', unlock = 2, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
+      {x = 864, y = 219, rx = 60, ry = 50, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1},
+      {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid'},
+      {x = 1140, y = 271, rx = 105, ry = 200, zoom_img = 'bee'},
+      {x = 973, y = 347, rx = 70, ry = 80, zoom_img = 'bee'},
+      {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'bee', star_sack = true, child =
+        {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'bee', unlock = 4, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'}},
     },
     [4] = {
-      {x = 0.5*W, y = 0.5*H, rx = 50, ry = 50, zoom_img = 'bee'},
-      {x = 0.2*W, y = 0.4*H, rx = 50, ry = 60, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid_broken'},
-      {x = 0.6*W, y = 0.7*H, rx = 80, ry = 80, zoom_img = 'bee', unlock = 21, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
+      {x = 429, y = 522, rx = 45, ry = 45, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 50, index = 1, musical_box = 'orchid_broken'},
+      {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'bee', cont_scroll = H * 2, letter_initial = true},
     },
     [5] = {
       {x = 222, y = 222, rx = 60, ry = 40, zoom_img = 'bee', cont_scroll = H * 2, letter_initial = true},
@@ -275,8 +275,11 @@ return function ()
 
   local tl = timeline_scroll()
   -- XXX: Mark to ease testing
+  tl.add_tick(album_ticks[1], 1)
+  -- tl.add_tick(album_ticks[2], 2)
+  tl.add_tick(album_ticks[3], 3)
+  -- tl.add_tick(album_ticks[4], 4)
   -- tl.add_tick(album_ticks[5], 5)
-  tl.add_tick(album_ticks[2], 2)
 
   local tl_obj_unlock
 
@@ -773,7 +776,7 @@ return function ()
       end
     end
     -- Background tracks
-    if album_idx == 2 then
+    if album_idx ~= 4 then
       audio_bg_vol = audio_bg_vol * (1 - mbox_counter / 180) ^ 2
     end
     local bg_track = bg_tracks[album_idx]
