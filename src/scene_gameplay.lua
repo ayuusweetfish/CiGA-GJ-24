@@ -224,7 +224,8 @@ return function ()
     },
     [4] = {
       {x = 429, y = 522, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_b'}, sprite_w = nil, index = 1, musical_box = 'orchid_broken'},
-      {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'bee', cont_scroll = H * 2, letter_initial = true},
+      {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = H * 3, letter_initial = true},
+      {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = H * 3, letter_after = true},
       {x = 891, y = 642, rx = 30, ry = 30, zoom_img = 'obj_ball'},
     },
     [5] = {
@@ -277,10 +278,12 @@ return function ()
 
   local tl = timeline_scroll()
   -- XXX: Mark to ease testing
+--[[
   tl.add_tick(album_ticks[1], 1)
   tl.add_tick(album_ticks[2], 2)
   tl.add_tick(album_ticks[3], 3)
   tl.add_tick(album_ticks[4], 4)
+]]
   tl.add_tick(album_ticks[5], 5)
 
   local tl_obj_unlock
@@ -715,7 +718,12 @@ return function ()
         scale_x = scale * (1 + math.sin(t * 3 * (math.pi * 2)) * ampl * 0.25)
         scale_y = scale * (1 + math.sin(t * 5 * (math.pi * 2)) * ampl)
       end
-      draw.img(img, x_cen, y_cen, W * scale_x, H * scale_y)
+      local w, h = W * scale_x, H * scale_y
+      if zoom_obj.cont_scroll then
+        local iw, ih = draw.get(img):getDimensions()
+        h = w / iw * ih
+      end
+      draw.img(img, x_cen, y_cen, iw, ih)
       -- Text
       if zoom_text then
         draw.shadow(0.9, 0.9, 0.9, o_alpha, zoom_text, W * 0.67, H * 0.5)
