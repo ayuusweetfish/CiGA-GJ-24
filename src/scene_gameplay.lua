@@ -200,9 +200,9 @@ return function ()
 
   local objs_in_album = {
     [1] = {
-      {x = 877, y = 395, rx = 30, ry = 12, zoom_img = 'obj_insect', unlock = 3, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
+      {x = 877, y = 395, rx = 30, ry = 12, zoom_img = 'obj_insect', unlock = 3, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'obj_chess'},
       {x = 952, y = 275, rx = 60, ry = 70, zoom_img = 'bee'},
-      {x = 858, y = 710, rx = 50, ry = 30, zoom_img = 'obj_chess'},
+      {x = 858, y = 710, rx = 50, ry = 30, zoom_img = 'obj_go'},
       {x = 1034, y = 581, rx = 43, ry = 26, zoom_img = 'obj_journal_1'},
     },
     [2] = {
@@ -251,11 +251,30 @@ return function ()
   local letter_read = {[4] = false, [5] = false}
 
   local STAR_SACK_BTNS = {
-    {x = W*0.5, y = H*0.5, r = 100, img = 'bee', key = true},
-    {x = W*0.4, y = H*0.5, r = 100, img = 'bee', key = true},
-    {x = W*0.5, y = H*0.6, r = 100, img = 'bee', key = true},
-    {x = W*0.4, y = H*0.6, r = 100, img = 'bee', key = false},
+    {x = 464, y = 508, r = 75, img = 'sack_btn_2', key = true},
+    {x = 609, y = 539, r = 75, img = 'sack_btn_4', key = false},
+    {x = 755, y = 552, r = 75, img = 'sack_btn_6', key = true},
+    {x = 916, y = 568, r = 75, img = 'sack_btn_8', key = true},
+    {x = 1061, y = 570, r = 75, img = 'sack_btn_10', key = false},
+    {x = 1191, y = 557, r = 75, img = 'sack_btn_12', key = false},
+    {x = 1306, y = 540, r = 75, img = 'sack_btn_14', key = true},
+    {x = 1410, y = 523, r = 75, img = 'sack_btn_16', key = true},
+    {x = 1504, y = 508, r = 75, img = 'sack_btn_18', key = false},
+    {x = 368, y = 581, r = 75, img = 'sack_btn_1', key = true},
+    {x = 518, y = 590, r = 75, img = 'sack_btn_3', key = true},
+    {x = 658, y = 651, r = 75, img = 'sack_btn_5', key = false},
+    {x = 828, y = 660, r = 75, img = 'sack_btn_7', key = true},
+    {x = 988, y = 675, r = 75, img = 'sack_btn_9', key = false},
+    {x = 1136, y = 663, r = 75, img = 'sack_btn_11', key = true},
+    {x = 1263, y = 658, r = 75, img = 'sack_btn_13', key = false},
+    {x = 1382, y = 635, r = 75, img = 'sack_btn_15', key = true},
+    {x = 1473, y = 607, r = 75, img = 'sack_btn_17', key = true},
+    {x = 1565, y = 581, r = 75, img = 'sack_btn_19', key = false},
   }
+  for i = 1, #STAR_SACK_BTNS do
+    STAR_SACK_BTNS[i].x = STAR_SACK_BTNS[i].x * (1280 / 1920)
+    STAR_SACK_BTNS[i].y = STAR_SACK_BTNS[i].y * (1280 / 1920)
+  end
 
   local PT_INITIAL_R = W * 0.01
   local PT_HELD_R = W * 0.03
@@ -784,6 +803,7 @@ return function ()
         for i = 1, #STAR_SACK_BTNS do
           local b = STAR_SACK_BTNS[i]
           if b.active then
+          --[[
             local x_offs = b.x - W / 2
             local y_offs = b.y - H / 2
             local rel_scale_x = w / W
@@ -794,6 +814,9 @@ return function ()
             draw.img(b.img, x_cen + x_offs, y_cen + y_offs,
               w * rel_scale_x,
               h * rel_scale_y)
+          ]]
+            local x_offs, y_offs = -W / 2, -H / 2
+            draw.img(b.img, x_cen, y_cen, w, h)
           end
         end
       end
