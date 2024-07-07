@@ -210,7 +210,8 @@ return function ()
   local sack_key_match_time = -1
 
   local tl = timeline_scroll()
-  tl.add_tick(album_ticks[5], 5)
+  tl.add_tick(album_ticks[3], 3)
+  -- tl.add_tick(album_ticks[5], 5)
 
   local tl_obj_unlock
 
@@ -326,7 +327,9 @@ return function ()
           if key_match then
             zoom_obj.sack_open = true
             sack_key_match_time = 0
-            -- TODO: Play sound
+            audio.sfx('sack_open')
+          else
+            audio.sfx('sack_click')
           end
         end
         sack_btn = false
@@ -412,6 +415,7 @@ return function ()
           zoom_text:release()
           zoom_text = nil
         end
+        zoom_scroll = nil
         tl_obj_unlock = nil
       end
     end
@@ -457,7 +461,7 @@ return function ()
 
     if sack_key_match_time >= 0 then
       sack_key_match_time = sack_key_match_time + 1
-      if sack_key_match_time >= 240 then
+      if sack_key_match_time >= 600 then
         sack_key_match_time = -1
         zoom_in_time, zoom_out_time = -1, 0
       end
@@ -479,7 +483,10 @@ return function ()
 
     if s4_seq_time >= 0 then
       s4_seq_time = s4_seq_time + 1
-      if s4_seq_time >= 480 then
+      if s4_seq_time == 240 then
+        audio.sfx('thunder')
+      end
+      if s4_seq_time == 480 then
         s4_seq_time = -2  -- Played
         synchronise_tl()
       end
@@ -539,7 +546,14 @@ return function ()
       end
       local x_cen = x_target + (zoom_obj.x - x_target) * move_prog
       local y_cen = y_target + (zoom_obj.y - y_target) * move_prog
-      draw.img(img, x_cen, y_cen, H * scale, H * scale)
+      local scale_x, scale_y = scale, scale
+      if zoom_obj.star_sack then
+        local t = sack_key_match_time / 600
+        local ampl = (1 - t) * math.exp(-t * 5) * 0.3
+        scale_x = scale * (1 + math.sin(t * 3 * (math.pi * 2)) * ampl * 0.25)
+        scale_y = scale * (1 + math.sin(t * 5 * (math.pi * 2)) * ampl)
+      end
+      draw.img(img, x_cen, y_cen, H * scale_x, H * scale_y)
       -- Text
       if zoom_text then
         draw.shadow(0.9, 0.9, 0.9, o_alpha, zoom_text, W * 0.67, H * 0.5)
@@ -552,10 +566,14 @@ return function ()
           if b.active then
             local x_offs = b.x - W / 2
             local y_offs = b.y - H / 2
-            local rel_scale = scale / 0.6
-            x_offs = x_offs * rel_scale
-            y_offs = y_offs * rel_scale
-            draw.img(b.img, x_cen + x_offs, y_cen + y_offs, b.r * 2 * rel_scale)
+            local rel_scale_x = scale_x / 0.6
+            local rel_scale_y = scale_y / 0.6
+            x_offs = x_offs * rel_scale_x
+            y_offs = y_offs * rel_scale_y
+            local w, h = draw.get(b.img):getDimensions()
+            draw.img(b.img, x_cen + x_offs, y_cen + y_offs,
+              w * rel_scale_x,
+              h * rel_scale_y)
           end
         end
       end
