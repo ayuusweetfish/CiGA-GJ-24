@@ -140,6 +140,11 @@ return function ()
     [20] = 'intro_bg',
     [21] = 'intro_bg',
   }
+  local album_backgrounds_alter = {
+    [2] = 'bee',
+    [4] = 'bee',
+    [5] = 'bee',
+  }
 
   local objs_in_album = {
     [1] = {
@@ -166,8 +171,10 @@ return function ()
     },
     [5] = {
       {x = 0.6*W, y = 0.4*H, rx = 30, ry = 30, zoom_img = 'bee', text = '不知道是什么'},
-      {x = 0.4*W, y = 0.6*H, rx = 80, ry = 80, zoom_img = 'bee', text = '不知道是什么', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee'},
-      {x = 0.2*W, y = 0.4*H, rx = 30, ry = 120, zoom_img = 'bee', cont_scroll = H * 2},
+      {x = 0.2*W, y = 0.4*H, rx = 30, ry = 120, zoom_img = 'bee', cont_scroll = H * 2, letter_initial = true},
+      {x = 0.1*W, y = 0.5*H, rx = 30, ry = 120, zoom_img = 'bee', cont_scroll = H * 2, letter_after = true},
+      -- {x = 0.3*W, y = 0.5*H, rx = 30, ry = 120, zoom_img = 'bee', text = '知道是什么', letter_after = true},
+      {x = 0.4*W, y = 0.6*H, rx = 80, ry = 80, zoom_img = 'bee', text = '不知道是什么', unlock = 1, unlock_seq = {'intro_bg', 'bee', 'intro_bg', 'bee', 'intro_bg'}, unlocked_img = 'bee', letter_after = true},
       {x = 0.5*W, y = 0.5*H, rx = 100, ry = 120, scene_sprites = {'bee', 'intro_bg'}, sprite_w = 100, index = 1},
     },
     [20] = {
@@ -180,7 +187,8 @@ return function ()
   local album_idx = 5
   local objs = objs_in_album[album_idx]
 
-  local light_on = true
+  local light_on = true     -- Scene 2
+  local letter_read = {[4] = false, [5] = false}
 
   local STAR_SACK_BTNS = {
     {x = W*0.5, y = H*0.5, r = 100, img = 'bee', key = true},
@@ -210,8 +218,7 @@ return function ()
   local sack_key_match_time = -1
 
   local tl = timeline_scroll()
-  tl.add_tick(album_ticks[3], 3)
-  -- tl.add_tick(album_ticks[5], 5)
+  tl.add_tick(album_ticks[5], 5)
 
   local tl_obj_unlock
 
@@ -350,6 +357,13 @@ return function ()
       local o = objs[i]
       -- Handle scene 2 where objects' interactivity depends on light state
       local valid = (album_idx ~= 2 or o.switch or (light_on == not o.night_interactable))
+      -- Handle scenes 4, 5 where objects' interactivity depends on whether the letter has been read
+      if letter_read[album_idx] ~= nil then
+        local disable_match = nil
+        if o.letter_initial then disable_match = true
+        elseif o.letter_after then disable_match = false end
+        valid = valid and letter_read[album_idx] ~= disable_match
+      end
       if valid then
         local dist = dist_ellipse(o.rx, o.ry, px - o.x, py - o.y)
         if dist < best_dist then
@@ -398,6 +412,9 @@ return function ()
       elseif o.switch then
         -- Light switch
         light_on = not light_on
+      end
+      if o.letter_initial then
+        letter_read[album_idx] = true
       end
     end
     px_rel, py_rel = px, py
@@ -498,7 +515,9 @@ return function ()
     love.graphics.setColor(1, 1, 1)
     local background = album_backgrounds[album_idx]
     if album_idx == 2 and not light_on then
-      background = 'bee'
+      background = album_backgrounds_alter[album_idx]
+    elseif letter_read[album_idx] then
+      background = album_backgrounds_alter[album_idx]
     end
     draw.img(background, W / 2, H / 2, W, H)
 
