@@ -317,10 +317,11 @@ return function ()
   tl.add_tick(album_ticks[4], 4)
 ]]
   tl.add_tick(album_ticks[5], 5)
-  -- tl.add_tick(album_ticks[6], 6)
-
+--[[
+  tl.add_tick(album_ticks[6], 6)
   tl.add_tick(album_ticks[20], 20)
   tl.add_tick(album_ticks[21], 21)
+]]
 
   local tl_obj_unlock
 
@@ -760,11 +761,13 @@ return function ()
         end
       end
     end
+  --[[
     love.graphics.setColor(1, 0.8, 0.7, 0.3)
     for i = 1, #objs do
       local o = objs[i]
       love.graphics.ellipse('fill', o.x, o.y, o.rx, o.ry)
     end
+  ]]
 
     -- Zoom-in
     if zoom_obj ~= nil then
