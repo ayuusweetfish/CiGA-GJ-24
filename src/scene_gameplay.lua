@@ -182,8 +182,10 @@ return function ()
   }
   local album_backgrounds_alter = {
     [2] = 'background_2_off',
-    [4] = 'background_4',
-    [5] = 'background_5',
+  }
+  local album_backgrounds_overlay = {
+    [4] = 'letter_a_overlay',
+    [5] = 'letter_b_overlay',
   }
   local bg_tracks = {
     bgm_light,
@@ -226,10 +228,10 @@ return function ()
       {x = 429, y = 522, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_b'}, sprite_w = nil, index = 1, musical_box = 'orchid_broken'},
       {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = 2000, letter_initial = true},
       {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = 2000, letter_after = true},
-      {x = 891, y = 642, rx = 30, ry = 30, zoom_img = 'obj_plastic'},
+      {x = 891, y = 642, rx = 30, ry = 30, zoom_img = 'obj_plastic', unlock = 21, unlock_seq = {'bee'}, unlocked_img = 'obj_plastic', letter_after = true},
     },
     [5] = {
-      {x = 222, y = 222, rx = 60, ry = 40, zoom_img = 'letter_b', cont_scroll = 1880, letter_initial = true},
+      {x = 810, y = 510, rx = 42, ry = 52, zoom_img = 'letter_b', cont_scroll = 1880, letter_initial = true},
       {x = 999, y = 523, rx = 60, ry = 30, zoom_img = 'letter_b', cont_scroll = 1880, letter_after = true},
       {x = 828, y = 512, rx = 40, ry = 40, zoom_img = 'obj_beer', unlock = 1, unlock_seq = {'obj_beer_rotate', 'obj_beer', 'obj_beer_rotate'}, unlocked_img = 'obj_beer_rotate', letter_after = true},
     },
@@ -408,6 +410,9 @@ return function ()
           end
           if key_match then
             zoom_obj.sack_open = true
+            -- Add overlay sprite
+            zoom_obj.scene_sprites = {'obj_sack_open'}
+            zoom_obj.index = 1
             sack_key_match_time = 0
             audio.sfx('sack_open')
           else
@@ -516,7 +521,6 @@ return function ()
     bgm_update_all()
 
     T = T + 1
-    if T % 240 == 0 then print(T) end
 
     if zoom_in_time >= 0 then zoom_in_time = zoom_in_time + 1
     elseif zoom_out_time >= 0 then
@@ -670,10 +674,12 @@ return function ()
     local background = album_backgrounds[album_idx]
     if album_idx == 2 and not light_on then
       background = album_backgrounds_alter[album_idx]
-    elseif letter_read[album_idx] then
-      background = album_backgrounds_alter[album_idx]
     end
     draw.img(background, W / 2, H / 2, W, H)
+    if letter_read[album_idx] then
+      local background = album_backgrounds_overlay[album_idx]
+      draw.img(background, W / 2, H / 2, W, H)
+    end
 
     -- Moving lights
     if album_idx == 2 and not light_on then
@@ -699,6 +705,7 @@ return function ()
             index = 1
           end
         end
+
         local image = o.scene_sprites[index]
         if image then
           if o.sprite_w then
