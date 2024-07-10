@@ -244,7 +244,7 @@ return function ()
       {x = 429, y = 522, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_b'}, sprite_w = nil, index = 1, musical_box = 'orchid_broken'},
       {x = 889, y = 609, rx = 80, ry = 50, zoom_img = 'letter_a', cont_scroll = 2000, letter_initial = true},
       {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = 2000, letter_after = true},
-      {x = 891, y = 642, rx = 30, ry = 30, zoom_img = 'obj_plastic', unlock = 21, unlock_seq = {'obj_plastic', 'obj_plastic'}, unlocked_img = 'obj_plastic', letter_after = true},
+      {x = 891, y = 642, rx = 30, ry = 30, zoom_img = 'obj_plastic', unlock = 21, unlock_seq = {'obj_plastic', 'obj_plastic'}, unlocked_img = 'obj_plastic', letter_after = true, unlocked_x = 680, unlocked_y = 620},
     },
     [5] = {
       {x = 810, y = 510, rx = 42, ry = 52, zoom_img = 'letter_b', cont_scroll = 1880, letter_initial = true},
@@ -556,10 +556,15 @@ return function ()
 
   local T = 0
 
+  local scroll_accum = 0
+  local SCROLL_ACCUM_LIMIT = 10
+
   s.update = function ()
     bgm_update_all()
 
     T = T + 1
+
+    scroll_accum = math.max(0, scroll_accum * 0.95 - 0.1)
 
     if zoom_in_time >= 0 then zoom_in_time = zoom_in_time + 1
     elseif zoom_out_time >= 0 then
@@ -829,18 +834,6 @@ return function ()
         for i = 1, #STAR_SACK_BTNS do
           local b = STAR_SACK_BTNS[i]
           if b.active then
-          --[[
-            local x_offs = b.x - W / 2
-            local y_offs = b.y - H / 2
-            local rel_scale_x = w / W
-            local rel_scale_y = h / H
-            x_offs = x_offs * rel_scale_x
-            y_offs = y_offs * rel_scale_y
-            local w, h = draw.get(b.img):getDimensions()
-            draw.img(b.img, x_cen + x_offs, y_cen + y_offs,
-              w * rel_scale_x,
-              h * rel_scale_y)
-          ]]
             local x_offs, y_offs = -W / 2, -H / 2
             draw.img(b.img, x_cen, y_cen, w, h)
           end
@@ -976,6 +969,12 @@ return function ()
   s.wheel = function (x, y)
     if sack_key_match_time >= 0 then return end
     if s4_seq_time >= 0 then return end
+
+    local limit = SCROLL_ACCUM_LIMIT - scroll_accum
+    if y < -limit then y = -limit
+    elseif y > limit then y = limit end
+    scroll_accum = scroll_accum + math.abs(y)
+
     if zoom_obj ~= nil then
       if zoom_in_time >= 120 then
         if tl_obj_unlock and zoom_obj.unlock ~= album_idx then
@@ -984,8 +983,11 @@ return function ()
               zoom_seq_prog = math.min(
                 #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE,
                 zoom_seq_prog + math.abs(y))
+              if zoom_seq_prog >= #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE then
+                scroll_accum = SCROLL_ACCUM_LIMIT -- Slow down!
+              end
             else
-              tl_obj_unlock.push(y)
+              tl_obj_unlock.push(y * 0.75)
               tl_time = math.max(0, math.min(120, tl_time))
             end
           end
