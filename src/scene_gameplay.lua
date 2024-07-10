@@ -371,6 +371,12 @@ return function ()
     px, py = x, y
   end
 
+  s.cancel = function (x, y)
+    zoom_pressed = false
+    p_hold_time, p_rel_time = -1, -1
+    if zoom_scroll then zoom_scroll.cancel(y, x) end
+  end
+
   s.hover = function (x, y)
     if p_hold_time == -1 then px, py = x, y end
   end
@@ -557,7 +563,7 @@ return function ()
   local T = 0
 
   local scroll_accum = 0
-  local SCROLL_ACCUM_LIMIT = 10
+  local SCROLL_ACCUM_LIMIT = 8
 
   s.update = function ()
     bgm_update_all()
@@ -615,6 +621,8 @@ return function ()
       mbox_playing = nil
       -- Update objects
       objs = objs_in_album[album_idx]
+      -- Slow down scroll
+      scroll_accum = SCROLL_ACCUM_LIMIT
     end
 
     if tl_time >= 0 then
@@ -966,7 +974,7 @@ return function ()
     love.graphics.rectangle('fill', W, 0, W, H)
   end
 
-  s.wheel = function (x, y)
+  s.wheel = function (x, y, x_raw, y_raw)
     if sack_key_match_time >= 0 then return end
     if s4_seq_time >= 0 then return end
 
@@ -992,7 +1000,11 @@ return function ()
             end
           end
         elseif zoom_scroll then
-          zoom_scroll.impulse(y * 3)
+          if _G['trackpadMode'] then
+            zoom_scroll.dx = zoom_scroll.dx + y_raw * 0.5
+          else
+            zoom_scroll.impulse(y * 3)
+          end
         end
       end
     elseif #tl.ticks > 1 then

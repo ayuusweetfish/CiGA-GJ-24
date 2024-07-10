@@ -92,6 +92,8 @@ end
 
 loadCrunch('ss_sack_btn.bin')
 
+print('*finish')
+
 local draw = function (drawable, x, y, w, h, ax, ay, r, kx, ky)
   ax = ax or 0.5
   ay = ay or 0.5

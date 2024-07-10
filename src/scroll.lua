@@ -40,6 +40,10 @@ return function (options)
     return true
   end
 
+  s.cancel = function (x, y)
+    held = false
+  end
+
   -- Return values
   -- false: Event passthrough
   -- 1: Event should not be passed further

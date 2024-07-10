@@ -73,6 +73,7 @@
         arguments: ["./game.love"],
         INITIAL_MEMORY: 134217728,
         print: function (text) {
+          console.log(text);
           if (loadingText !== null) {
             if (text !== '*finish') {
               loadingText.innerText = 'Loading assets... (' + text + ')';

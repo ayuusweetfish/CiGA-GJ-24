@@ -69,6 +69,12 @@ _G['replaceScene'] = function (newScene, transition)
   currentTransition = transition or transitions['fade'](0.9, 0.9, 0.9)
 end
 
+local leftShiftHeld = false
+_G['trackpadMode'] = not true
+local trackpadMode = trackpadMode
+local scrollRate = 0.2
+local scrollYAccum = 0
+
 local mouseScene = nil
 function love.mousepressed(x, y, button, istouch, presses)
   if button ~= 1 then return end
@@ -84,11 +90,37 @@ end
 function love.mousereleased(x, y, button, istouch, presses)
   if button ~= 1 then return end
   if mouseScene ~= curScene then return end
-  curScene.release((x - offsX) / globalScale, (y - offsY) / globalScale)
+  local fn = curScene.release
+  if leftShiftHeld then fn = curScene.cancel end
+  if fn then
+    fn((x - offsX) / globalScale, (y - offsY) / globalScale)
+  end
   mouseScene = nil
 end
+
 function love.wheelmoved(x, y)
-  if curScene.wheel then curScene.wheel(x, y) end
+  local x_raw, y_raw = x, y
+  if trackpadMode then
+    -- print(scrollYAccum, y)
+    if math.abs(y) > math.abs(scrollYAccum) then
+      y, scrollYAccum = y - scrollYAccum, y
+    else
+      y = 0
+    end
+    y = y * scrollRate
+  end
+  if curScene.wheel then curScene.wheel(x, y, x_raw, y_raw) end
+end
+
+-- Emulate scroll with touch
+function love.touchpressed(id, x, y, dx, dy, pressure)
+  x, y = (x - offsX) / globalScale, (y - offsY) / globalScale
+end
+function love.touchmoved(id, x, y, dx, dy, pressure)
+  x, y = (x - offsX) / globalScale, (y - offsY) / globalScale
+end
+function love.touchreleased(id, x, y, dx, dy, pressure)
+  x, y = (x - offsX) / globalScale, (y - offsY) / globalScale
 end
 
 local T = 0
@@ -109,6 +141,11 @@ function love.update(dt)
     else
       curScene:update()
     end
+
+    scrollYAccum = scrollYAccum * 0.99
+    if scrollYAccum > 0.01 then scrollYAccum = scrollYAccum - 0.01
+    elseif scrollYAccum < -0.01 then scrollYAccum = scrollYAccum + 0.01
+    else scrollYAccum = 0 end
   end
 end
 
@@ -149,10 +186,14 @@ function love.draw()
 end
 
 function love.keypressed(key)
+  if key == 'lshift' then leftShiftHeld = true end
   if false and key == 'lshift' then
     if not isMobile and not isWeb then
       love.window.setFullscreen(not love.window.getFullscreen())
       updateLogicalDimensions()
     end
   end
+end
+function love.keyreleased(key)
+  if key == 'lshift' then leftShiftHeld = false end
 end
