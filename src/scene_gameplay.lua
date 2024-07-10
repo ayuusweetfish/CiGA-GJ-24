@@ -845,6 +845,8 @@ return function ()
             draw.img(b.img, x_cen, y_cen, w, h)
           end
         end
+        love.graphics.setColor(1, 1, 1, o_alpha)
+        draw.flush()
       end
     end
 
