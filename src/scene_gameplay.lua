@@ -2,7 +2,7 @@ local draw = require 'draw_utils'
 local audio = require 'audio'
 local scroll = require 'scroll'
 
-local debug = false
+local debug = not false
 
 local timeline_scroll = function ()
   local s = {}
@@ -214,12 +214,13 @@ return function ()
 
   local objs_in_album = {
     [1] = {
-      {x = 877, y = 395, rx = 30, ry = 12, zoom_img = 'obj_insect', unlock = 3, unlock_seq = {'obj_insect', 'obj_insect'}, unlocked_img = 'obj_chess'},
+      {x = 877, y = 395, rx = 30, ry = 12, zoom_img = 'obj_insect', unlock = 3, unlock_seq = {'obj_insect', 'obj_insect'}, unlocked_img = 'obj_chess', unlocked_x = 702, unlocked_y = 381},
       -- {x = 952, y = 275, rx = 60, ry = 70, zoom_img = 'bee'},
       {x = 858, y = 710, rx = 50, ry = 30, zoom_img = 'obj_go'},
       {x = 1034, y = 581, rx = 43, ry = 26, zoom_img = 'obj_journal_1'},
     },
     [2] = {
+      {x = 646, y = 370, rx = 70, ry = 40, zoom_img = 'obj_fish_fin'},
       {x = 826, y = 653, rx = 80, ry = 40, zoom_imgs = {'obj_star_1', 'obj_star_2', 'obj_star_3', 'obj_star_4'}},
       {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_a'}, sprite_w = nil, index = 1, musical_box = 'orchid'},
       {x = 1020, y = 314, rx = 70, ry = 80, zoom_img = 'obj_journal_2'},
@@ -227,10 +228,11 @@ return function ()
       {x = 435, y = 254, rx = 48, ry = 35, zoom_img = 'obj_illust', night_interactable = true},
     },
     [3] = {
+      {x = 702, y = 381, rx = 77, ry = 45, zoom_img = 'obj_chess'},
       {x = 544, y = 210, rx = 250, ry = 110, zoom_img = 'obj_map'},
       {x = 516, y = 367, rx = 60, ry = 40, zoom_img = 'obj_frames'},
       {x = 798, y = 664, rx = 30, ry = 25, zoom_img = 'obj_amber', unlock = 20, unlock_seq = {'obj_amber', 'obj_amber'}, unlocked_img = 'obj_amber'},
-      {x = 859, y = 605, rx = 50, ry = 75, zoom_img = 'obj_fish_bone', unlock = 2, unlock_seq = {'obj_fish_bone', 'obj_fish_bone'}, unlocked_img = 'obj_fish_fin'},
+      {x = 859, y = 605, rx = 50, ry = 75, zoom_img = 'obj_fish_bone', unlock = 2, unlock_seq = {'obj_fish_bone', 'obj_fish_bone'}, unlocked_img = 'obj_fish_fin', unlocked_x = 646, unlocked_y = 370},
       {x = 864, y = 219, rx = 60, ry = 50, scene_sprites = {nil, 'obj_lamp_3'}, sprite_w = nil, index = 1},
       {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_a'}, sprite_w = nil, index = 1, musical_box = 'orchid'},
       {x = 1140, y = 271, rx = 105, ry = 200, zoom_img = 'obj_bull'},
@@ -804,8 +806,12 @@ return function ()
         y_target = ih * 0.5 + zoom_scroll.dx
         w, h = iw, ih
       end
-      local x_cen = x_target + (zoom_obj.x - x_target) * move_prog
-      local y_cen = y_target + (zoom_obj.y - y_target) * move_prog
+      local return_x, return_y = zoom_obj.x, zoom_obj.y
+      if zoom_obj.unlock == album_idx and zoom_obj.unlocked_x ~= nil then
+        return_x, return_y = zoom_obj.unlocked_x, zoom_obj.unlocked_y
+      end
+      local x_cen = x_target + (return_x - x_target) * move_prog
+      local y_cen = y_target + (return_y - y_target) * move_prog
       if zoom_obj.star_sack then
         local t = sack_key_match_time / 600
         local ampl = (1 - t) * math.exp(-t * 5) * 0.3
@@ -891,12 +897,12 @@ return function ()
     for i = 1, #objs do
       local o = objs[i]
       if o.musical_box and o.index == 2 then
-        audio.sfx_vol(o.musical_box, (1 - blur_alpha) * 0.25)
+        audio.sfx_vol(o.musical_box, (1 - blur_alpha) * 0.125)
       end
     end
     -- Background tracks
     if album_idx ~= 4 then
-      audio_bg_vol = audio_bg_vol * (1 - mbox_counter / 180) ^ 2
+      audio_bg_vol = audio_bg_vol * (0.25 + 0.75 * (1 - mbox_counter / 180) ^ 2)
     end
     local bg_track = bg_tracks[album_idx]
     for i = 1, #bg_tracks_all do bg_tracks_all[i]:setVolume(0) end
