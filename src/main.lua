@@ -47,54 +47,62 @@ local fontSizeFactory = function (path, preload)
     return font[size]
   end
 end
-_G['global_font'] = fontSizeFactory('fnt/BorelRegular_subset.ttf', {28, 36})
+_G['global_font'] = fontSizeFactory('fnt/ChillRoundGothic_Regular_subset.ttf', {28, 36})
+_G['numbers_font'] = fontSizeFactory('fnt/BorelRegular_subset.ttf', {28, 36})
 love.graphics.setFont(_G['global_font'](40))
 
 _G['scene_intro'] = require 'scene_intro'
+_G['scene_setup'] = require 'scene_setup'
 _G['scene_gameplay'] = require 'scene_gameplay'
 
 local audio = require 'audio'
 
-local curScene = scene_gameplay()
+local curScene = scene_setup()  -- scene_gameplay()
 local lastScene = nil
 local transitionTimer = 0
 local currentTransition = nil
 local transitions = {}
 _G['transitions'] = transitions
 
+local ptx, pty = W / 2, H / 2
+
 _G['replaceScene'] = function (newScene, transition)
   lastScene = curScene
   curScene = newScene
   transitionTimer = 0
   currentTransition = transition or transitions['fade'](0.9, 0.9, 0.9)
+  if newScene.enter_hover then
+    newScene.enter_hover(ptx, pty)
+  end
 end
 
 local leftShiftHeld = false
 _G['trackpadMode'] = not true
 local trackpadMode = trackpadMode
-local scrollRate = 0.2
+_G['scrollRate'] = 0.2
 local scrollYAccum = 0
 
 local mouseScene = nil
 function love.mousepressed(x, y, button, istouch, presses)
+  ptx, pty = (x - offsX) / globalScale, (y - offsY) / globalScale
   if button ~= 1 then return end
   if lastScene ~= nil then return end
   mouseScene = curScene
-  curScene.press((x - offsX) / globalScale, (y - offsY) / globalScale)
+  curScene.press(ptx, pty)
 end
 function love.mousemoved(x, y, button, istouch)
-  curScene.hover((x - offsX) / globalScale, (y - offsY) / globalScale)
+  ptx, pty = (x - offsX) / globalScale, (y - offsY) / globalScale
+  curScene.hover(ptx, pty)
   if mouseScene ~= curScene then return end
-  curScene.move((x - offsX) / globalScale, (y - offsY) / globalScale)
+  curScene.move(ptx, pty)
 end
 function love.mousereleased(x, y, button, istouch, presses)
+  ptx, pty = (x - offsX) / globalScale, (y - offsY) / globalScale
   if button ~= 1 then return end
   if mouseScene ~= curScene then return end
   local fn = curScene.release
   if leftShiftHeld then fn = curScene.cancel end
-  if fn then
-    fn((x - offsX) / globalScale, (y - offsY) / globalScale)
-  end
+  if fn then fn(ptx, pty) end
   mouseScene = nil
 end
 

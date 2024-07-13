@@ -130,7 +130,7 @@ end
 local enclose = function (drawable, w, h, extraOffsX, extraOffsY)
   local iw, ih = drawable:getDimensions()
   local offsX = (w - iw) / 2 + (extraOffsX or 0)
-  local offsY = (h - ih) / 2 + (extraOffsY or 3)  -- Font specific
+  local offsY = (h - ih) / 2 + (extraOffsY or 0)  -- Font specific
   local s = {}
   s.getDimensions = function (self)
     return w, h

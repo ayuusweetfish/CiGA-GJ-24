@@ -2,7 +2,7 @@ local draw = require 'draw_utils'
 local audio = require 'audio'
 local scroll = require 'scroll'
 
-local debug = not false
+local debug = false
 
 local timeline_scroll = function ()
   local s = {}
@@ -131,44 +131,45 @@ local timeline_scroll = function ()
   return s
 end
 
-local bgm_light, bgm_light_update = audio.loop(
-  'aud/background_light_intro.ogg', (2 * 4) * (60 / 70),
-  'aud/background_light_loop.ogg', (24 * 4) * (60 / 70),
-  1600 * 4
-)
-bgm_light:setVolume(0)
-
-local bgm_cat, bgm_cat_update = audio.loop(
-  nil, 0,
-  'aud/background_cat.ogg', (28 * 4) * (60 / 68),
-  1600 * 4
-)
-bgm_cat:setVolume(0)
-bgm_cat:play()
-
-local bgm_cat_rain, bgm_cat_rain_update = audio.loop(
-  nil, 0,
-  'aud/background_cat_rain.ogg', (28 * 4) * (60 / 68),
-  1600 * 4
-)
-bgm_cat_rain:setVolume(0)
-bgm_cat_rain:play()
-
-local since_bgm_update = 0
-local bgm_update_all = function ()
-  since_bgm_update = since_bgm_update + 1
-  if since_bgm_update >= 120 then
-    since_bgm_update = 0
-    bgm_light_update()
-    bgm_cat_update()
-    bgm_cat_rain_update()
-  end
-end
-
 return function ()
+  local bgm_light, bgm_light_update = audio.loop(
+    'aud/background_light_intro.ogg', (2 * 4) * (60 / 70),
+    'aud/background_light_loop.ogg', (24 * 4) * (60 / 70),
+    1600 * 4
+  )
+  bgm_light:setVolume(0)
+
+  local bgm_cat, bgm_cat_update = audio.loop(
+    nil, 0,
+    'aud/background_cat.ogg', (28 * 4) * (60 / 68),
+    1600 * 4
+  )
+  bgm_cat:setVolume(0)
+  bgm_cat:play()
+
+  local bgm_cat_rain, bgm_cat_rain_update = audio.loop(
+    nil, 0,
+    'aud/background_cat_rain.ogg', (28 * 4) * (60 / 68),
+    1600 * 4
+  )
+  bgm_cat_rain:setVolume(0)
+  bgm_cat_rain:play()
+
+  local since_bgm_update = 0
+  local bgm_update_all = function ()
+    since_bgm_update = since_bgm_update + 1
+    if since_bgm_update >= 120 then
+      since_bgm_update = 0
+      bgm_light_update()
+      bgm_cat_update()
+      bgm_cat_rain_update()
+    end
+  end
+
   local s = {}
   local W, H = W, H
-  local font = _G['global_font']
+  local text_font = _G['global_font']
+  local num_font = _G['numbers_font']
 
   local album_ticks = {0, 0.25, 0.5, 0.75, 1, 1.75, [20] = -100, [21] = 90, [22] = 100}
   local album_dates = {
@@ -182,7 +183,7 @@ return function ()
     [21] = '13578246 CE',
   }
   for k, v in pairs(album_dates) do
-    album_dates[k] = love.graphics.newText(font(28), tostring(v))
+    album_dates[k] = love.graphics.newText(num_font(28), tostring(v))
   end
   local album_backgrounds = {
     'background_1',
@@ -377,6 +378,8 @@ return function ()
     if zoom_scroll then zoom_scroll.cancel(y, x) end
   end
 
+  s.enter_hover = function (x, y) px, py = x, y end
+
   s.hover = function (x, y)
     if p_hold_time == -1 then px, py = x, y end
   end
@@ -512,7 +515,7 @@ return function ()
         zoom_in_time, zoom_out_time = 0, -1
         -- Text
         if o.text ~= nil then
-          zoom_text = love.graphics.newText(font(42), o.text)
+          zoom_text = love.graphics.newText(text_font(42), o.text)
         end
         -- Scrolling
         if o.cont_scroll ~= nil then

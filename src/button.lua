@@ -25,6 +25,10 @@ return function (drawable, fn)
     end
   end
 
+  s.cancel = function (x, y)
+    held, inside = false, false
+  end
+
   s.move = function (x, y)
     if not held then return false end
     inside =
@@ -49,9 +53,10 @@ return function (drawable, fn)
     end
   end
 
-  s.draw = function ()
+  s.draw = function (x_offs, y_offs)
     local sc = scale * s.s
-    local x, y, sc = s.x - w/2 * sc, s.y - h/2 * sc, sc
+    local x = s.x - w/2 * sc + (x_offs or 0)
+    local y = s.y - h/2 * sc + (y_offs or 0)
     if drawable.draw then
       drawable:draw(x, y, sc)
     else
