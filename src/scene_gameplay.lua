@@ -3,7 +3,7 @@ local audio = require 'audio'
 local scroll = require 'scroll' -- Continuous
 local timeline_scroll = require 'timeline_scroll' -- Timeline
 
-local debug = not false
+local debug = false
 
 return function ()
   local bgm_light, bgm_light_update = audio.loop(
