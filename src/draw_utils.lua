@@ -109,8 +109,8 @@ local draw = function (drawable, x, y, w, h, ax, ay, r, kx, ky)
     kx, ky)
 end
 
-local img = function (name, x, y, w, h, ax, ay, r)
-  draw(imgs[name], x, y, w, h, ax, ay, r)
+local img = function (name, x, y, w, h, ax, ay, r, kx, ky)
+  draw(imgs[name], x, y, w, h, ax, ay, r, kx, ky)
 end
 
 local flush = function ()

@@ -52,7 +52,7 @@ return function ()
     '1998.09',
     '1999.08',
     '2000.04',
-    '2017.05',
+    '2018.05',
     [20] = '400000 BCE',
     [21] = '13578246 CE',
   }
@@ -636,11 +636,31 @@ return function ()
       draw.img(background, W / 2, H / 2, W, H)
     end
 
-    -- Moving lights
+    -- Stage setup for album scene 2 (campfire)
     if album_idx == 2 and not light_on then
       local seq = {'overlay_2_fire_1', 'overlay_2_fire_2'}
       local seq_idx = math.floor(T / 100) % #seq + 1
       draw.img(seq[seq_idx], W / 2, H / 2, W, H)
+    end
+
+    -- Stage setup for album scene 20 (remote age)
+    if album_idx == 20 then
+      draw.img('stage_20_middleground', W / 2, H / 2, W, H)
+      local bush_move = function (sx_ampl, sx_period, sy_ampl, sy_period, kx_ampl, kx_period, T, seed)
+        local n1, n2, n3 = seed, seed, seed
+        local sx = 1 + sx_ampl * math.sin((T + n1) / sx_period * math.pi * 2)
+        local sy = 1 + sy_ampl * math.sin((T + n2) / sy_period * math.pi * 2)
+        local kx = kx_ampl * math.sin((T + n3) / kx_period * math.pi * 2)
+        sy = sy * math.cos(kx * 0.5)
+        return sx, sy, kx
+      end
+      local sx1, sy1, kx1 = bush_move(0.002, 2880, 0.005, 2400, 0.01, 1200, T, 77881234)
+      draw.img('stage_20_bush_1', W * 0.6, H * 0.9, W * sx1, H * sy1, 0.6, 0.9, 0, kx1, 0)
+      draw.img('stage_20_light', W / 2, H / 2, W, H)
+      local sx2, sy2, kx2 = bush_move(0.002, 2560, 0.004, 1700, 0.01, 1900, T, 17772)
+      draw.img('stage_20_bush_2', W * 0.83, H * 0.96, W * sx2, H * sy2, 0.83, 0.96, 0, kx2, 0)
+      local sx3, sy3, kx3 = bush_move(0.0015, 2440, 0.003, 1900, 0.012, 1010, T, 999998)
+      draw.img('stage_20_bush_3', W * 0.19 - W * 0.01, H * 1.1, W * sx3, H * sy3, 0.19, 1.1, 0, kx3, 0)
     end
 
     -- Lightnings
@@ -868,13 +888,13 @@ return function ()
       local tl0_ticks = {}
       for i = 1, #tl0.ticks do
         tl0_ticks[tl0.ticks[i]] = true
-        draw(album_dates[tl0.tags[i]], x - W * 0.02, y(tl0.ticks[i]), nil, nil, 1, 0.3)
+        draw(album_dates[tl0.tags[i]], x - W * 0.025, y(tl0.ticks[i]), nil, nil, 1, 0.3)
       end
       for i = 1, #tl.ticks do if not tl0_ticks[tl.ticks[i]] then
         local dist = math.min(1, math.abs(tl.dx - i))
         local a = math.max(0, 1 - dist * 2)
         love.graphics.setColor(1, 1, 1, 0.4 * tl_alpha * a)
-        draw(album_dates[tl.tags[i]], x - W * 0.02, y(tl.ticks[i]), nil, nil, 1, 0.3)
+        draw(album_dates[tl.tags[i]], x - W * 0.025, y(tl.ticks[i]), nil, nil, 1, 0.3)
       end end
       love.graphics.setColor(1, 1, 1, tl_alpha)
       love.graphics.circle('fill', x, y(tl.dx_disp), 20)
