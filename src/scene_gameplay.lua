@@ -749,7 +749,6 @@ return function ()
         if x < 0.5 then move_prog = x * x * x * 4
         else move_prog = 1 - (1 - x) * (1 - x) * (1 - x) * 4 end
       end
-      love.graphics.setColor(1, 1, 1, o_alpha)
       local x_target, y_target = W * 0.275, H * 0.5
       if zoom_text == nil then
         x_target = W * 0.5
@@ -779,6 +778,10 @@ return function ()
         w = w * (1 + math.sin(t * 3 * (math.pi * 2)) * ampl * 0.25)
         h = h * (1 + math.sin(t * 5 * (math.pi * 2)) * ampl)
       end
+      local dim_alpha = (1 - (1 - o_alpha) * (1 - o_alpha)) * 0.2
+      love.graphics.setColor(0.1, 0.1, 0.1, dim_alpha)
+      love.graphics.rectangle('fill', 0, 0, W, H)
+      love.graphics.setColor(1, 1, 1, o_alpha)
       draw.img(img, x_cen, y_cen, w, h)
       -- Text
       if zoom_text then
@@ -948,17 +951,15 @@ return function ()
     if zoom_obj ~= nil then
       if zoom_in_time >= 120 then
         if tl_obj_unlock and zoom_obj.unlock ~= album_idx then
-          if y * (album_ticks[zoom_obj.unlock] - album_ticks[album_idx]) > 0 then
-            if zoom_seq_prog < #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE then
-              zoom_seq_prog = math.min(
-                #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE,
-                zoom_seq_prog + math.abs(y))
-              if zoom_seq_prog >= #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE then
-                scroll_accum = SCROLL_ACCUM_LIMIT -- Slow down!
-              end
-            else
-              tl_obj_unlock.push(y * 0.75)
-              tl_time = math.max(0, math.min(120, tl_time))
+          local sign = (album_ticks[zoom_obj.unlock] > album_ticks[album_idx]) and 1 or -1
+          local total_prog = #zoom_obj.unlock_seq * UNLOCK_SEQ_PROG_RATE
+          if zoom_seq_prog >= total_prog and y * sign >= 0 then
+            tl_obj_unlock.push(y * 0.75)
+            tl_time = math.max(0, math.min(120, tl_time))
+          else
+            zoom_seq_prog = math.max(0, math.min(total_prog, zoom_seq_prog + y * sign))
+            if zoom_seq_prog >= total_prog then
+              scroll_accum = SCROLL_ACCUM_LIMIT -- Slow down!
             end
           end
         elseif zoom_scroll then
