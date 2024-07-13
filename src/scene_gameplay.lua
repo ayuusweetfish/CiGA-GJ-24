@@ -227,11 +227,13 @@ return function ()
 
   local s1_seq_time = -1
   local s4_seq_time = -1
+  local s20_seq_time = -1
 
   s.press = function (x, y)
     if sack_key_match_time >= 0 then return end
     if s1_seq_time >= 0 then return end
     if s4_seq_time >= 0 then return end
+    -- Entry sequence for scene 20 does not affect (disable) pointer events
     if zoom_obj ~= nil then
       if zoom_in_time >= 120 then
         if zoom_obj.star_sack then
@@ -550,10 +552,11 @@ return function ()
       mbox_counter_limitless = 0
     end
 
-    -- Special case: entering album scenes 1 and 4
+    -- Special case: entering album scenes 1, 4, and 20
     if tl_obj_unlock and zoom_obj and
       ((s1_seq_time == -1 and zoom_obj.unlock == 1) or
-       (s4_seq_time == -1 and zoom_obj.unlock == 4))
+       (s4_seq_time == -1 and zoom_obj.unlock == 4) or
+       (zoom_obj.unlock == 20))
     then
       local i = tl_obj_unlock.find_tag(zoom_obj.unlock)
       if (tl_obj_unlock.dx - 1.5) * (i - 1.5) >= 0 then
@@ -561,9 +564,14 @@ return function ()
         if zoom_obj.unlock == 1 then
           s1_seq_time = 0
           bgm_light:play()
-        else
+        elseif zoom_obj.unlock == 4 then
           s4_seq_time = 0
+        elseif zoom_obj.unlock == 20 then
+          -- Overlaid timeline cannot be immediately cleared, as animation will glitch
+          -- So wait a few frames before doing so (by calling `synchronise_tl()`)
+          s20_seq_time = 0
         end
+        -- Clear zoomed-in object
         zoom_obj = nil
         zoom_in_time, zoom_out_time = -1, -1
         if zoom_text then -- XXX: to determine whether this is needed
@@ -588,6 +596,14 @@ return function ()
       end
       if s4_seq_time == 960 then
         s4_seq_time = -2  -- Finished
+        synchronise_tl()
+      end
+    end
+
+    if s20_seq_time >= 0 then
+      s20_seq_time = s20_seq_time + 1
+      if s20_seq_time >= 240 then
+        s20_seq_time = -1
         synchronise_tl()
       end
     end
@@ -646,6 +662,12 @@ return function ()
     -- Stage setup for album scene 20 (remote age)
     if album_idx == 20 then
       draw.img('stage_20_middleground', W / 2, H / 2, W, H)
+      -- Gecko
+      local gecko_idx = math.floor(T / 20) % 48 + 1
+      if gecko_idx > 22 then gecko_idx = 1 end
+      draw.img(string.format('stage_20_gecko_%02d', gecko_idx), W / 2, H / 2, W, H)
+      draw.flush()
+
       local bush_move = function (sx_ampl, sx_period, sy_ampl, sy_period, kx_ampl, kx_period, T, seed)
         local n1, n2, n3 = seed, seed, seed
         local sx = 1 + sx_ampl * math.sin((T + n1) / sx_period * math.pi * 2)
@@ -654,11 +676,12 @@ return function ()
         sy = sy * math.cos(kx * 0.5)
         return sx, sy, kx
       end
+
       local sx1, sy1, kx1 = bush_move(0.002, 2880, 0.005, 2400, 0.01, 1200, T, 77881234)
       draw.img('stage_20_bush_1', W * 0.6, H * 0.9, W * sx1, H * sy1, 0.6, 0.9, 0, kx1, 0)
-      draw.img('stage_20_light', W / 2, H / 2, W, H)
       local sx2, sy2, kx2 = bush_move(0.002, 2560, 0.004, 1700, 0.01, 1900, T, 17772)
       draw.img('stage_20_bush_2', W * 0.83, H * 0.96, W * sx2, H * sy2, 0.83, 0.96, 0, kx2, 0)
+      draw.img('stage_20_light', W / 2, H / 2, W, H)
       local sx3, sy3, kx3 = bush_move(0.0015, 2440, 0.003, 1900, 0.012, 1010, T, 999998)
       draw.img('stage_20_bush_3', W * 0.19 - W * 0.01, H * 1.1, W * sx3, H * sy3, 0.19, 1.1, 0, kx3, 0)
     end
@@ -909,7 +932,9 @@ return function ()
 
   s.wheel = function (x, y, x_raw, y_raw)
     if sack_key_match_time >= 0 then return end
+    if s1_seq_time >= 0 then return end
     if s4_seq_time >= 0 then return end
+    if s20_seq_time >= 0 then return end
 
     local limit = SCROLL_ACCUM_LIMIT - scroll_accum
     if y < -limit then y = -limit

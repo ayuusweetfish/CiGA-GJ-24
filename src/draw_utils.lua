@@ -91,6 +91,7 @@ local loadCrunch = function (path)
 end
 
 loadCrunch('ss_sack_btn.bin')
+loadCrunch('stage_20_gecko.bin')
 
 print('*finish')
 
