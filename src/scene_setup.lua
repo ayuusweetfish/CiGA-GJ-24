@@ -26,8 +26,8 @@ local slider = function (w, h, fn)
   end
 
   s.cancel = function (x, y)
+    if held then s.v = held_initial_v end
     held = false
-    s.v = held_initial_v
     fn()
   end
 
@@ -69,9 +69,10 @@ return function ()
   local font = _G['global_font']
 
   local t1 = love.graphics.newText(font(36), '游玩使用的是……')
-  local t2 = love.graphics.newText(font(36), '滚动灵敏度')
-  local t3 = love.graphics.newText(font(28), '请尝试在任意处滚动滚轮')
-  local t4 = love.graphics.newText(font(28), '请尝试在任意处用双指上下滑动')
+  local t2a = love.graphics.newText(font(36), '滚动灵敏度')
+  local t2b = love.graphics.newText(font(36), '滚动灵敏度（固定）')
+  local t3a = love.graphics.newText(font(28), '请尝试在任意处滚动滚轮')
+  local t3b = love.graphics.newText(font(28), '请尝试在任意处用双指上下滑动')
 
   local mode_sel = 1
   local sld_sens
@@ -87,10 +88,14 @@ return function ()
 
   local update_options = function ()
     _G['trackpadMode'] = (mode_sel == 2)
-    -- Map -0.5 ~ 0 ~ 0.5 to 0 ~ 1 ~ 4
-    local v = (sld_sens.v + 0.5) * 2
-    if v > 1 then v = v * (v + 2) / 3 end
-    _G['scrollRate'] = 0.1 + v * (mode_sel == 2 and 0.1 or 0.9)
+    if mode_sel == 3 then
+      _G['scrollRate'] = 1
+    else
+      -- Map -0.5 ~ 0 ~ 0.5 to 0 ~ 1 ~ 4
+      local v = (sld_sens.v + 0.5) * 2
+      if v > 1 then v = v * (v + 2) / 3 end
+      _G['scrollRate'] = 0.1 + v * (mode_sel == 2 and 0.1 or 0.9)
+    end
   end
 
   local btn_mouse = button(
@@ -123,12 +128,12 @@ return function ()
 
   s.press = function (x, y)
     for i = 1, #buttons do if buttons[i].press(x, y) then return true end end
-    if sld_sens.press(x, y) then return true end
+    if mode_sel ~= 3 and sld_sens.press(x, y) then return true end
   end
 
   s.cancel = function (x, y)
-    for i = 1, #buttons do if buttons[i].cancel(x, y) then return true end end
-    if sld_sens.cancel(x, y) then return true end
+    for i = 1, #buttons do buttons[i].cancel(x, y) end
+    sld_sens.cancel(x, y)
   end
 
   s.hover = function (x, y)
@@ -136,12 +141,12 @@ return function ()
 
   s.move = function (x, y)
     for i = 1, #buttons do if buttons[i].move(x, y) then return true end end
-    if sld_sens.move(x, y) then return true end
+    if mode_sel ~= 3 and sld_sens.move(x, y) then return true end
   end
 
   s.release = function (x, y)
     for i = 1, #buttons do if buttons[i].release(x, y) then return true end end
-    if sld_sens.release(x, y) then return true end
+    if mode_sel ~= 3 and sld_sens.release(x, y) then return true end
   end
 
   s.update = function ()
@@ -177,14 +182,17 @@ return function ()
       mode_btns[i].draw()
     end
 
-    draw.shadow(0.95, 0.95, 0.95, 1, t2, W * 0.1, H * 0.48, nil, nil, 0, 0.5)
     if mode_sel ~= 3 then
-      draw.shadow(0.95, 0.95, 0.95, 1, t3, W * 0.1, H * 0.55, nil, nil, 0, 0.5)
+      draw.shadow(0.95, 0.95, 0.95, 1, t2a, W * 0.1, H * 0.48, nil, nil, 0, 0.5)
+      draw.shadow(0.95, 0.95, 0.95, 1, t3a, W * 0.1, H * 0.55, nil, nil, 0, 0.5)
     else
-      draw.shadow(0.95, 0.95, 0.95, 1, t4, W * 0.1, H * 0.55, nil, nil, 0, 0.5)
+      draw.shadow(0.95, 0.95, 0.95, 1, t2b, W * 0.1, H * 0.48, nil, nil, 0, 0.5)
+      draw.shadow(0.95, 0.95, 0.95, 1, t3b, W * 0.1, H * 0.55, nil, nil, 0, 0.5)
     end
 
-    sld_sens.draw(0.95, 0.95, 0.95)
+    if mode_sel ~= 3 then
+      sld_sens.draw(0.95, 0.95, 0.95)
+    end
 
     local cx, cy, cr = W * 0.2, H * 0.62, H * 0.05
     -- local a = tl.dx % 2 * math.pi

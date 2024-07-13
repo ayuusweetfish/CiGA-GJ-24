@@ -98,11 +98,11 @@
           if (text) {
             if (text === 'Running...') text = 'Loading assets...';
             drawLoadingText(text);
-            loadingText.innerText = text;
+            if (loadingText) loadingText.innerText = text;
           } else if (Module.remainingDependencies === 0) {
             document.getElementById('loadingCanvas').style.display = 'none';
             document.getElementById('canvas').style.visibility = 'visible';
-            loadingText.innerText = '';
+            if (loadingText) loadingText.innerText = '';
           }
         },
         totalDependencies: 0,

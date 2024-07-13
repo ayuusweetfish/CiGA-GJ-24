@@ -120,14 +120,46 @@ function love.wheelmoved(x, y)
 end
 
 -- Emulate scroll with touch
+local touch_as_pointer = false
+local touch_count = 0
+local touch_accum_dy = 0
+local touches_y = {}
 function love.touchpressed(id, x, y, dx, dy, pressure)
   x, y = (x - offsX) / globalScale, (y - offsY) / globalScale
+  touches_y[id] = y
+  touch_count = touch_count + 1
+  if touch_count == 1 then
+    -- First touch
+    touch_as_pointer = true
+  elseif touch_as_pointer then
+    -- Cancel pointer event
+    touch_as_pointer = false
+    mouseScene.cancel(x, y)
+    mouseScene = nil
+    touch_accum_dy = 0
+  end
 end
 function love.touchmoved(id, x, y, dx, dy, pressure)
   x, y = (x - offsX) / globalScale, (y - offsY) / globalScale
+  if not touch_as_pointer then
+    local touch_scroll_step = H / 20
+    touch_accum_dy = touch_accum_dy + (y - touches_y[id])
+    local n = math.floor(touch_accum_dy / touch_scroll_step + 0.5)
+    if n ~= 0 then
+      touch_accum_dy = touch_accum_dy - n * touch_scroll_step
+      love.wheelmoved(0, n)
+    end
+  end
+  touches_y[id] = y
 end
 function love.touchreleased(id, x, y, dx, dy, pressure)
   x, y = (x - offsX) / globalScale, (y - offsY) / globalScale
+  touches_y[id] = nil
+  touch_count = touch_count - 1
+  if touch_count == 0 then
+    touch_as_pointer = false
+    touch_accum_dy = 0
+  end
 end
 
 local T = 0

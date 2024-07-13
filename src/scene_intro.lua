@@ -20,6 +20,10 @@ return function ()
     for i = 1, #buttons do if buttons[i].press(x, y) then return true end end
   end
 
+  s.cancel = function (x, y)
+    for i = 1, #buttons do buttons[i].cancel(x, y) end
+  end
+
   s.hover = function (x, y)
   end
 
