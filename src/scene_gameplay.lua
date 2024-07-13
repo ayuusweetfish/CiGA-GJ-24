@@ -3,7 +3,7 @@ local audio = require 'audio'
 local scroll = require 'scroll' -- Continuous
 local timeline_scroll = require 'timeline_scroll' -- Timeline
 
-local debug = false
+local debug = not false
 
 return function ()
   local bgm_light, bgm_light_update = audio.loop(
@@ -53,8 +53,8 @@ return function ()
     '1999.08',
     '2000.04',
     '2018.05',
-    [20] = '400000 BCE',
-    [21] = '13578246 CE',
+    [20] = '70570724 BCE',
+    [21] = '113578246 CE',
   }
   for k, v in pairs(album_dates) do
     album_dates[k] = love.graphics.newText(num_font(28), tostring(v))
@@ -112,7 +112,7 @@ return function ()
         'obj_amber_anim6', 'obj_amber_anim7', 'obj_amber_anim8'
       }, unlocked_img = 'obj_amber_anim8'},
       {x = 859, y = 605, rx = 50, ry = 75, zoom_img = 'obj_fish_anim1', unlock = 2, unlock_seq = {'obj_fish_anim2', 'obj_fish_anim3', 'obj_fish_anim4', 'obj_fish_anim5', 'obj_fish_anim6', 'obj_fish_anim7'}, unlocked_img = 'obj_fish_anim7', unlocked_x = 646, unlocked_y = 370},
-      {x = 864, y = 219, rx = 60, ry = 50, scene_sprites = {nil, 'obj_lamp_3'}, sprite_w = nil, index = 1},
+      {x = 864, y = 219, rx = 60, ry = 50, scene_sprites = {nil, 'obj_lamp_3'}, sprite_w = nil, index = 1, sound = 'switch_small'},
       {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_a'}, sprite_w = nil, index = 1, musical_box = 'orchid'},
       {x = 1140, y = 271, rx = 105, ry = 200, zoom_img = 'obj_bull'},
       {x = 973, y = 347, rx = 70, ry = 80, zoom_img = 'obj_journal_3'},
@@ -445,6 +445,8 @@ return function ()
             audio.sfx_stop(o.musical_box)
             mbox_playing = nil
           end
+        elseif o.sound then
+          audio.sfx(o.sound)
         end
       elseif o.switch then
         -- Light switch
@@ -613,6 +615,18 @@ return function ()
     end
   end
 
+  local particles = {}
+  for freq = 0.001, 0.006, 0.0005 do
+    for vel = 0.02, 0.08, 0.01 do
+      local f0 = freq + love.math.noise(vel * 39292.3456, freq * 8118.888) * 0.002
+      local v0 = vel + love.math.noise(freq * 27461.1234, vel * 3553.16253) * 0.04
+      local n1 = love.math.noise(freq * 11111, vel * 222 + 22) * 33333.332
+      local n2 = love.math.noise(vel * 112, freq * 333) * 45678.9876
+      local n4 = love.math.noise((vel + freq * 1823.3) * 13619.94, vel * 123646.17373)
+      particles[#particles + 1] = {f0, v0, n1, n2, n4}
+    end
+  end
+
   s.draw = function ()
     love.graphics.clear(0.1, 0.1, 0.1)
 
@@ -632,10 +646,12 @@ return function ()
     if album_idx == 4 or album_idx == 5 or album_idx == 6 then
       local ampl = (album_idx == 4 and 1 or 0.4)
       local freq = (album_idx == 4 and 1 or 0.3)
+      local kx_ampl = (album_idx == 4 and 0.15 or 0.06)
       for i = 1, 3 do
-        local dx = math.sin(0.5 + album_idx + i * (1.22 + album_idx) + T * (0.01 + 0.001 * freq * i)) * 10 * ampl
+        local dx = math.sin(0.5 + album_idx + i * (1.22 + album_idx) + T * (0.01 + 0.001 * freq * i)) * 4 * ampl
         local dy = math.sin(0.15 + album_idx * 1.77 + i * (3.66 - album_idx) + T * (0.005 - 0.0006 * freq * i)) * 2 * ampl
-        draw.img('grass_' .. i, W / 2 + dx, H / 2 + dy, W * 1.2, H * 1.2)
+        local kx = kx_ampl * math.sin(i * i * 7788 + album_idx * i * 3399 + T * 0.007 * freq)
+        draw.img('grass_' .. i, W * 0.5 + dx, H * 0.6 + dy, W * 1.2, H * 1.2, 0.5, 0.6, 0, kx)
       end
     end
 
@@ -688,6 +704,29 @@ return function ()
       draw.img('stage_20_light', W / 2, H / 2, W, H)
       local sx3, sy3, kx3 = bush_move(0.0015, 2440, 0.003, 1900, 0.012, 1010, T, 999998)
       draw.img('stage_20_bush_3', W * 0.19 - W * 0.01, H * 1.1, W * sx3, H * sy3, 0.19, 1.1, 0, kx3, 0)
+
+      -- Particles
+      local par_ox, par_oy = W * 0.54, H * 0.33
+      local par_dx, par_dy = W * 0.02, H * 0.29
+      for i = 1, #particles do
+        local f0, v0, n1, n2, n4 = unpack(particles[i])
+        local n3 = (love.math.noise(T / 371.2818, f0 * 36351858.1, v0 * 16373447.1) - 0.5)
+        local n5 = love.math.noise(T / 269.7, f0 * 191774.3, v0 * 28383.2235)
+        local n6 = love.math.noise(T / 311.7, v0 * 191774.3, f0 * 28383.2235)
+        local phase = f0 * (T + n1) % (2 * math.pi / 0.7)
+        local ydist = (T + n2) * v0 % par_dy
+        local yprog = ydist / par_dy
+        local x = par_ox + par_dx * (math.sin(phase * 0.7 + n5 * 0.3) + n3 * 1.8) * (0.7 + yprog)
+        local y = par_oy - ydist + (n6 - 0.5) * par_dy * 0.04
+        local alpha = 0.4 + 0.55 * math.sin(T * (3e-4 * (1 + n4)) + n1 + n2)
+        if alpha > 0 then
+          alpha = alpha * alpha
+          if yprog < 0.1 then alpha = alpha * (yprog * 10)
+          elseif yprog > 0.8 then alpha = alpha * ((1 - yprog) * 5) end
+          love.graphics.setColor(0.95, 0.95, 0.95, alpha)
+          love.graphics.circle('fill', x, y, 1, 5)
+        end
+      end
     end
 
     -- Lightnings
