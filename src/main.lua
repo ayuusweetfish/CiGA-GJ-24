@@ -57,7 +57,7 @@ _G['scene_gameplay'] = require 'scene_gameplay'
 
 local audio = require 'audio'
 
-local curScene =  scene_gameplay()
+local curScene = scene_setup() -- scene_gameplay()
 local lastScene = nil
 local transitionTimer = 0
 local currentTransition = nil

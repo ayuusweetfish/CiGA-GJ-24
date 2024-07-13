@@ -3,7 +3,7 @@ local audio = require 'audio'
 local scroll = require 'scroll' -- Continuous
 local timeline_scroll = require 'timeline_scroll' -- Timeline
 
-local debug = not false
+local debug = false
 
 return function ()
   local bgm_light, bgm_light_update = audio.loop(
@@ -12,6 +12,7 @@ return function ()
     1600 * 4
   )
   bgm_light:setVolume(0)
+  bgm_light:stop()
 
   local bgm_cat, bgm_cat_update = audio.loop(
     nil, 0,
@@ -19,7 +20,7 @@ return function ()
     1600 * 4
   )
   bgm_cat:setVolume(0)
-  bgm_cat:play()
+  bgm_cat:stop()
 
   local bgm_cat_rain, bgm_cat_rain_update = audio.loop(
     nil, 0,
@@ -27,7 +28,7 @@ return function ()
     1600 * 4
   )
   bgm_cat_rain:setVolume(0)
-  bgm_cat_rain:play()
+  bgm_cat_rain:stop()
 
   local since_bgm_update = 0
   local bgm_update_all = function ()
@@ -467,6 +468,10 @@ return function ()
   local SCROLL_ACCUM_LIMIT = 8
 
   s.update = function ()
+    if T == 0 then
+      bgm_cat:play()
+      bgm_cat_rain:play()
+    end
     bgm_update_all()
 
     T = T + 1
@@ -713,10 +718,14 @@ return function ()
         local n3 = (love.math.noise(T / 371.2818, f0 * 36351858.1, v0 * 16373447.1) - 0.5)
         local n5 = love.math.noise(T / 269.7, f0 * 191774.3, v0 * 28383.2235)
         local n6 = love.math.noise(T / 311.7, v0 * 191774.3, f0 * 28383.2235)
+        local n7 = love.math.noise(f0 * 473751.1, (v0 + f0) * 773231.92, T / 1950.1)
         local phase = f0 * (T + n1) % (2 * math.pi / 0.7)
         local ydist = (T + n2) * v0 % par_dy
         local yprog = ydist / par_dy
-        local x = par_ox + par_dx * (math.sin(phase * 0.7 + n5 * 0.3) + n3 * 1.8) * (0.7 + yprog)
+        local x = par_ox + par_dx * (
+          (math.sin(phase * 0.7 + n5 * 0.3) + n3 * 1.8) * (0.7 + yprog) +
+          (n7 - 0.5) * 1.8
+        )
         local y = par_oy - ydist + (n6 - 0.5) * par_dy * 0.04
         local alpha = 0.4 + 0.55 * math.sin(T * (3e-4 * (1 + n4)) + n1 + n2)
         if alpha > 0 then
