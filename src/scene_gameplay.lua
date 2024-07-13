@@ -48,11 +48,11 @@ return function ()
   local album_ticks = {0, 0.25, 0.5, 0.75, 1, 1.75, [20] = -100, [21] = 90, [22] = 100}
   local album_dates = {
     '1997.03',
-    '1997.08',
+    '1997.07',
     '1998.09',
-    '1999.07',
+    '1999.08',
     '2000.04',
-    '2015.03',
+    '2017.05',
     [20] = '400000 BCE',
     [21] = '13578246 CE',
   }
@@ -89,37 +89,49 @@ return function ()
 
   local objs_in_album = {
     [1] = {
-      {x = 877, y = 395, rx = 30, ry = 12, zoom_img = 'obj_insect', unlock = 3, unlock_seq = {'obj_insect', 'obj_insect'}, unlocked_img = 'obj_chess', unlocked_x = 702, unlocked_y = 381},
+      {x = 877, y = 395, rx = 30, ry = 12, zoom_img = 'obj_insect_anim1', unlock = 3, unlock_seq = {'obj_insect_anim2', 'obj_insect_anim3', 'obj_insect_anim4', 'obj_insect_anim5', 'obj_insect_anim6', 'obj_insect_anim7'}, unlocked_img = 'obj_insect_anim7', unlocked_x = 702, unlocked_y = 381},
       -- {x = 952, y = 275, rx = 60, ry = 70, zoom_img = 'bee'},
       {x = 858, y = 710, rx = 50, ry = 30, zoom_img = 'obj_go'},
       {x = 1034, y = 581, rx = 43, ry = 26, zoom_img = 'obj_journal_1'},
     },
     [2] = {
-      {x = 646, y = 370, rx = 70, ry = 40, zoom_img = 'obj_fish_fin'},
-      {x = 826, y = 653, rx = 80, ry = 40, zoom_imgs = {'obj_star_1', 'obj_star_2', 'obj_star_3', 'obj_star_4'}},
+      {x = 646, y = 370, rx = 70, ry = 40, zoom_img = 'obj_insect_anim7'},
+      {x = 826, y = 653, rx = 80, ry = 40, zoom_imgs = {'obj_fortune_1', 'obj_fortune_2', 'obj_fortune_3', 'obj_fortune_4'}},
       {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_a'}, sprite_w = nil, index = 1, musical_box = 'orchid'},
       {x = 1020, y = 314, rx = 70, ry = 80, zoom_img = 'obj_journal_2'},
       {x = 1127, y = 217, rx = 45, ry = 60, switch = true},
       {x = 435, y = 254, rx = 48, ry = 35, zoom_img = 'obj_illust', night_interactable = true},
     },
     [3] = {
-      {x = 702, y = 381, rx = 77, ry = 45, zoom_img = 'obj_chess'},
+      {x = 702, y = 381, rx = 77, ry = 45, zoom_img = 'obj_insect_anim7'},
       {x = 544, y = 210, rx = 250, ry = 110, zoom_img = 'obj_map'},
       {x = 516, y = 367, rx = 60, ry = 40, zoom_img = 'obj_frames'},
-      {x = 798, y = 664, rx = 30, ry = 25, zoom_img = 'obj_amber', unlock = 20, unlock_seq = {'obj_amber', 'obj_amber'}, unlocked_img = 'obj_amber'},
-      {x = 859, y = 605, rx = 50, ry = 75, zoom_img = 'obj_fish_bone', unlock = 2, unlock_seq = {'obj_fish_bone', 'obj_fish_bone'}, unlocked_img = 'obj_fish_fin', unlocked_x = 646, unlocked_y = 370},
+      {x = 798, y = 664, rx = 30, ry = 25, zoom_img = 'obj_amber_anim1', unlock = 20, unlock_seq = {
+        'obj_amber_anim2', 'obj_amber_anim3', 'obj_amber_anim4', 'obj_amber_anim5',
+        'obj_amber_anim6', 'obj_amber_anim7', 'obj_amber_anim8'
+      }, unlocked_img = 'obj_amber_anim8'},
+      {x = 859, y = 605, rx = 50, ry = 75, zoom_img = 'obj_fish_anim1', unlock = 2, unlock_seq = {'obj_fish_anim2', 'obj_fish_anim3', 'obj_fish_anim4', 'obj_fish_anim5', 'obj_fish_anim6', 'obj_fish_anim7'}, unlocked_img = 'obj_fish_anim7', unlocked_x = 646, unlocked_y = 370},
       {x = 864, y = 219, rx = 60, ry = 50, scene_sprites = {nil, 'obj_lamp_3'}, sprite_w = nil, index = 1},
       {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_a'}, sprite_w = nil, index = 1, musical_box = 'orchid'},
       {x = 1140, y = 271, rx = 105, ry = 200, zoom_img = 'obj_bull'},
       {x = 973, y = 347, rx = 70, ry = 80, zoom_img = 'obj_journal_3'},
       {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'obj_sack', star_sack = true, child =
-        {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'obj_bottle', unlock = 4, unlock_seq = {'obj_bottle', 'obj_bottle'}, unlocked_img = 'obj_bottle'}},
+        {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'obj_bottle_anim01', unlock = 4, unlock_seq = {
+          'obj_bottle_anim02', 'obj_bottle_anim03', 'obj_bottle_anim04', 'obj_bottle_anim05',
+          'obj_bottle_anim06', 'obj_bottle_anim07', 'obj_bottle_anim08', 'obj_bottle_anim09',
+          'obj_bottle_anim10', 'obj_bottle_anim11', 'obj_bottle_anim12', 'obj_bottle_anim13',
+          'obj_bottle_anim14', 'obj_bottle_anim15', 'obj_bottle_anim16'
+        }, unlocked_img = 'obj_bottle_anim16'}},
     },
     [4] = {
       {x = 429, y = 522, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_b'}, sprite_w = nil, index = 1, musical_box = 'orchid_broken'},
       {x = 889, y = 609, rx = 80, ry = 50, zoom_img = 'letter_a', cont_scroll = 2000, letter_initial = true},
       {x = 779, y = 535, rx = 85, ry = 145, zoom_img = 'letter_a', cont_scroll = 2000, letter_after = true},
-      {x = 891, y = 642, rx = 30, ry = 30, zoom_img = 'obj_plastic', unlock = 21, unlock_seq = {'obj_plastic', 'obj_plastic'}, unlocked_img = 'obj_plastic', letter_after = true, unlocked_x = 680, unlocked_y = 620},
+      {x = 891, y = 642, rx = 30, ry = 30, zoom_img = 'obj_plastic_anim01', unlock = 21, unlock_seq = {
+        'obj_plastic_anim02', 'obj_plastic_anim03', 'obj_plastic_anim04', 'obj_plastic_anim05',
+        'obj_plastic_anim06', 'obj_plastic_anim07', 'obj_plastic_anim08', 'obj_plastic_anim09',
+        'obj_plastic_anim10'
+      }, unlocked_img = 'obj_plastic_anim10', letter_after = true, unlocked_x = 680, unlocked_y = 620},
     },
     [5] = {
       {x = 810, y = 510, rx = 42, ry = 52, zoom_img = 'letter_b', cont_scroll = 1880, letter_initial = true},
@@ -132,7 +144,11 @@ return function ()
     [20] = {
     },
     [21] = {
-      {x = 680, y = 620, rx = 50, ry = 35, zoom_img = 'obj_star', unlock = 6, unlock_seq = {'obj_star', 'obj_star'}, unlocked_img = 'obj_star'},
+      {x = 680, y = 620, rx = 50, ry = 35, zoom_img = 'obj_star_anim01', unlock = 6, unlock_seq = {
+        'obj_star_anim02', 'obj_star_anim03', 'obj_star_anim04', 'obj_star_anim05',
+        'obj_star_anim06', 'obj_star_anim07', 'obj_star_anim08', 'obj_star_anim09',
+        'obj_star_anim10',
+      }, unlocked_img = 'obj_star_anim10'},
     },
   }
   local album_idx = 5
