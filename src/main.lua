@@ -77,9 +77,8 @@ _G['replaceScene'] = function (newScene, transition)
 end
 
 local leftShiftHeld = false
-_G['trackpadMode'] = not true
-local trackpadMode = trackpadMode
-_G['scrollRate'] = 0.2
+_G['trackpadMode'] = false
+_G['scrollRate'] = 1  -- Will be updated at `scene_setup`
 local scrollYAccum = 0
 
 local mouseScene = nil
@@ -108,15 +107,15 @@ end
 
 function love.wheelmoved(x, y)
   local x_raw, y_raw = x, y
-  if trackpadMode then
+  if _G['trackpadMode'] then
     -- print(scrollYAccum, y)
     if math.abs(y) > math.abs(scrollYAccum) then
       y, scrollYAccum = y - scrollYAccum, y
     else
       y = 0
     end
-    y = y * scrollRate
   end
+  y = y * scrollRate
   if curScene.wheel then curScene.wheel(x, y, x_raw, y_raw) end
 end
 
