@@ -3,7 +3,7 @@ local audio = require 'audio'
 local scroll = require 'scroll' -- Continuous
 local timeline_scroll = require 'timeline_scroll' -- Timeline
 
-local debug = false
+local debug = not false
 
 return function ()
   local bgm_light, bgm_light_update = audio.loop(
@@ -476,7 +476,7 @@ return function ()
     if p_hold_time >= 0 then p_hold_time = p_hold_time + 1
     elseif p_rel_time >= 0 then
       p_rel_time = p_rel_time + 1
-      if p_rel_time >= 120 then p_rel_time = -1 end
+      if p_rel_time >= 240 then p_rel_time = -1 end
     end
 
     tl.update()
@@ -591,6 +591,7 @@ return function ()
       love.graphics.rectangle('fill', 0, 0, W, H)
     end
 
+    -- Grass
     love.graphics.setColor(1, 1, 1)
     if album_idx == 4 or album_idx == 5 or album_idx == 6 then
       local ampl = (album_idx == 4 and 1 or 0.4)
@@ -602,6 +603,13 @@ return function ()
       end
     end
 
+    -- Rain
+    if album_idx == 4 then
+      local rain_img_idx = math.floor(T % 160 / 40) + 1
+      draw.img('rain_' .. rain_img_idx, W / 2, H / 2, W, H)
+    end
+
+    -- Main background image
     local background = album_backgrounds[album_idx]
     if album_idx == 2 and not light_on then
       background = album_backgrounds_alter[album_idx]
@@ -741,10 +749,22 @@ return function ()
       p_alpha = math.min(1, p_hold_time / 60)
       p_alpha = 1 - (1 - p_alpha) * (1 - p_alpha)
     end
-    love.graphics.setColor(1, 0.8, 0.7, 1 - p_alpha)
+    local p_hide_alpha = 1
+    if _G['is_touch'] then
+      if p_hold_time >= 0 then
+        local x = math.min(1, p_hold_time / 60)
+        p_hide_alpha = 1 - (1 - x) * (1 - x)
+      elseif p_rel_time == -1 then
+        p_hide_alpha = 0
+      elseif p_rel_time >= 120 then
+        local x = math.max(0, 1 - (p_rel_time - 120) / 120)
+        p_hide_alpha = x * x
+      end
+    end
+    love.graphics.setColor(0.97, 0.97, 0.97, (1 - p_alpha) * p_hide_alpha)
     love.graphics.setLineWidth(2)
     love.graphics.circle('line', px_anim, py_anim, pr)
-    love.graphics.setColor(1, 0.8, 0.7, p_alpha)
+    love.graphics.setColor(0.97, 0.97, 0.97, p_alpha * p_hide_alpha)
     love.graphics.circle('fill', px_anim, py_anim, pr)
 
     -- Blur

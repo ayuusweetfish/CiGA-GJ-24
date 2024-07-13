@@ -96,6 +96,7 @@ return function ()
       if v > 1 then v = v * (v + 2) / 3 end
       _G['scrollRate'] = 0.1 + v * (mode_sel == 2 and 0.1 or 0.9)
     end
+    _G['is_touch'] = (mode_sel == 3)
   end
 
   local btn_mouse = button(
