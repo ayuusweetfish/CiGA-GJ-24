@@ -93,6 +93,7 @@ return function ()
       -- {x = 952, y = 275, rx = 60, ry = 70, zoom_img = 'bee'},
       {x = 858, y = 710, rx = 50, ry = 30, zoom_img = 'obj_go'},
       {x = 1034, y = 581, rx = 43, ry = 26, zoom_img = 'obj_journal_1'},
+      {x = 961, y = 271, rx = 45, ry = 60, zoom_img = 'obj_dinosaur'},
     },
     [2] = {
       {x = 646, y = 370, rx = 70, ry = 40, zoom_img = 'obj_insect_anim7'},
@@ -115,6 +116,9 @@ return function ()
       {x = 415, y = 352, rx = 45, ry = 45, scene_sprites = {nil, 'obj_musical_box_a'}, sprite_w = nil, index = 1, musical_box = 'orchid'},
       {x = 1140, y = 271, rx = 105, ry = 200, zoom_img = 'obj_bull'},
       {x = 973, y = 347, rx = 70, ry = 80, zoom_img = 'obj_journal_3'},
+      {x = 879, y = 381, rx = 20, ry = 36, zoom_img = 'obj_sunglasses'},
+      {x = 260, y = 361, rx = 125, ry = 45, zoom_img = 'obj_telescope'},
+      {x = 847, y = 295, rx = 42, ry = 23, zoom_img = 'obj_workbook'},
       {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'obj_sack', star_sack = true, child =
         {x = 649, y = 601, rx = 100, ry = 80, zoom_img = 'obj_bottle_anim01', unlock = 4, unlock_seq = {
           'obj_bottle_anim02', 'obj_bottle_anim03', 'obj_bottle_anim04', 'obj_bottle_anim05',
@@ -903,7 +907,7 @@ return function ()
       end
       love.graphics.setColor(1, 1, 1, 0.4 * tl_alpha)
       love.graphics.setLineWidth(4)
-      local x = W * 0.92
+      local x = W * 0.94
       love.graphics.line(x, y(timeline_min), x, y(timeline_max))
       for i = 1, #tl0.ticks do
         love.graphics.circle('fill', x, y(tl0.ticks[i]), 12)
